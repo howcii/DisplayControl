@@ -1,0 +1,24 @@
+name: 功能建议
+description: 建议新的控制能力、兼容设备或维护体验
+title: "[Feature] "
+labels:
+  - enhancement
+body:
+  - type: textarea
+    id: scenario
+    attributes:
+      label: 使用场景
+      description: 说明需要解决的实际问题。
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: 建议方案
+    validations:
+      required: true
+  - type: textarea
+    id: compatibility
+    attributes:
+      label: 兼容性影响
+      description: 是否涉及旧 Server、Windows Agent、Android Agent 或现场设备。

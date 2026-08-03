@@ -1,0 +1,6 @@
+<resources>
+    <string name="app_name">屏控助手</string>
+    <string name="app_title">屏控助手</string>
+    <string name="device_admin_label">屏控 Agent 休眠权限</string>
+    <string name="device_admin_description">允许屏控 Agent 在收到网页“休眠”命令时调用系统锁屏。Agent 不会反复执行旧命令，用户手动唤醒优先。</string>
+</resources>

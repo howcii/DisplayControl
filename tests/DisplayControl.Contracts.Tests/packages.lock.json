@@ -1,0 +1,37 @@
+{
+  "version": 1,
+  "dependencies": {
+    "net10.0": {
+      "Microsoft.Extensions.Hosting.WindowsServices": {
+        "type": "Transitive",
+        "resolved": "8.0.1",
+        "contentHash": "5p0tjMDpr8tgzjBdu9Rzk8lUU/PaR1D3Us52XZypl85QTxfAjthR1+YywB3GsGc+FOZWdpuEDsV8kZisEC2Hng==",
+        "dependencies": {
+          "System.ServiceProcess.ServiceController": "8.0.1"
+        }
+      },
+      "System.ServiceProcess.ServiceController": {
+        "type": "Transitive",
+        "resolved": "8.0.1",
+        "contentHash": "02I0BXo1kmMBgw03E8Hu4K6nTqur4wpQdcDZrndczPzY2fEoGvlinE35AWbyzLZ2h2IksEZ6an4tVt3hi9j1oA=="
+      },
+      "displaycontrol.contracts": {
+        "type": "Project"
+      },
+      "displaycontrol.server": {
+        "type": "Project",
+        "dependencies": {
+          "DisplayControl.Contracts": "[1.0.0, )",
+          "Microsoft.Extensions.Hosting.WindowsServices": "[8.0.1, )"
+        }
+      }
+    },
+    "net10.0/win-x64": {
+      "System.ServiceProcess.ServiceController": {
+        "type": "Transitive",
+        "resolved": "8.0.1",
+        "contentHash": "02I0BXo1kmMBgw03E8Hu4K6nTqur4wpQdcDZrndczPzY2fEoGvlinE35AWbyzLZ2h2IksEZ6an4tVt3hi9j1oA=="
+      }
+    }
+  }
+}

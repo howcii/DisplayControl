@@ -1,0 +1,7 @@
+<resources>
+    <color name="screen_blue">#2563EB</color>
+    <color name="screen_green">#16A34A</color>
+    <color name="screen_text">#0F172A</color>
+    <color name="screen_muted">#64748B</color>
+    <color name="screen_page">#F4F7FB</color>
+</resources>

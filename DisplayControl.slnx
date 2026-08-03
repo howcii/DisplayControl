@@ -1,0 +1,11 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/DisplayControl.Agent/DisplayControl.Agent.csproj" />
+    <Project Path="src/DisplayControl.Contracts/DisplayControl.Contracts.csproj" />
+    <Project Path="src/DisplayControl.Server/DisplayControl.Server.csproj" />
+    <Project Path="src/DisplayControl.Server.Manager/DisplayControl.Server.Manager.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/DisplayControl.Contracts.Tests/DisplayControl.Contracts.Tests.csproj" />
+  </Folder>
+</Solution>

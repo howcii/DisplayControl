@@ -1,0 +1,35 @@
+展示屏控制系统 2026.08.03.1 直接运行版
+=====================================
+
+这个完整项目包含 4 个正式程序：
+1. 控制网页：随 Server 一起运行，不需要单独安装。
+2. Windows Server 管理端：管理后台服务和控制网页。
+3. Windows Agent：安装在 Windows 展示设备。
+4. Android Agent：安装在 Android 展示设备。
+
+最简单的使用方法
+----------------
+1. 解压完整 ZIP。
+2. Server 文件夹中双击“DisplayControl.Server.Manager.exe”，在管理器内安装或更新服务。
+3. Windows Agent 文件夹中双击“DisplayControl.Agent.exe”。
+4. Server 和 Windows Agent 都可以在程序面板中选择安装位置。
+5. Android 展示端打开“01-安装包”中的 Android Agent 文件夹，安装 APK。
+
+目录说明
+--------
+- 01-安装包：Server、Windows Agent 和 Android Agent 的可安装成品。
+- 02-完整源码：四端源码、测试、打包脚本和注释。
+- 03-项目文档：项目介绍、使用说明、部署和版本记录。
+- 04-测试与质量：当前自动化测试报告和质量结论。
+- 05-设计规范：四端统一 UI 规范。
+- tools：程序调用的辅助脚本，普通用户不需要打开。
+
+重要说明
+--------
+- Server 和 Windows Agent 都允许从程序界面选择安装位置。
+- 程序本体、配置和运行数据保存在项目文件夹中，不复制到 LocalAppData。
+- Android APK 的实际安装位置由 Android 系统管理。
+- 初始账号：admin
+- 初始密码：安装时随机生成，请在 Server 管理器中点击“打开初始密码文件”查看。
+- 首次登录后请修改密码。
+- RS232 串口检测版不属于正式系统，未放入本完整安装包。

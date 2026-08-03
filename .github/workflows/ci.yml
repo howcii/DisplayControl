@@ -1,0 +1,68 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  dotnet:
+    name: .NET build and regression
+    runs-on: windows-latest
+    env:
+      DOTNET_NOLOGO: true
+      DOTNET_CLI_TELEMETRY_OPTOUT: true
+      NUGET_PACKAGES: ${{ github.workspace }}\.nuget\packages
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v6
+        with:
+          global-json-file: global.json
+          cache: true
+          cache-dependency-path: |
+            **/packages.lock.json
+
+      - name: Restore
+        run: dotnet restore .\DisplayControl.slnx --locked-mode
+
+      - name: Build
+        run: dotnet build .\DisplayControl.slnx -c Release --no-restore
+
+      - name: Core regression
+        run: >
+          dotnet run
+          --project .\tests\DisplayControl.Contracts.Tests\DisplayControl.Contracts.Tests.csproj
+          -c Release
+          --no-restore
+
+  android:
+    name: Android build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: src/DisplayControl.AndroidAgent
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v6
+        with:
+          cache-provider: basic
+
+      - name: Build debug APK
+        run: ./gradlew :app:assembleDebug --no-daemon

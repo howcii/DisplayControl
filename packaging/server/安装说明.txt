@@ -1,0 +1,21 @@
+Display Control Server 使用方法
+==============================
+
+最简单：
+1. 双击“DisplayControl.Server.Manager.exe”
+2. 如果要放到 A 盘或其他位置，在管理器里点“选择安装位置”
+3. 点“安装 / 更新服务”
+4. 点“打开初始密码文件”，复制系统为本次安装生成的临时密码
+5. 点“打开控制网页”，输入账号 admin、临时密码和验证码
+6. 首次登录后按网页提示改成正式密码
+
+数据保存在当前文件夹 data 目录，不复制到 LocalAppData 或 ProgramData。
+管理器里的“选择安装位置”只复制 Server 包到你选择的位置，不会强行安装到 C 盘。
+Windows 服务内部名仍叫 DisplayControlCenterV11，这是升级兼容名；判断最新版请看
+文件夹/安装包名称里的日期时间。
+
+目录说明：
+- 第一层的 DisplayControl.Server.Manager.exe 是直接运行入口。
+- app 目录保存服务器程序和网页资源。
+- tools 目录保存服务管理辅助脚本，普通用户不需要打开。
+- data 目录保存管理员密码、设备、日志和 Cookie 签名密钥。

@@ -1,0 +1,49 @@
+name: 缺陷报告
+description: 报告可复现的功能、稳定性或界面问题
+title: "[Bug] "
+labels:
+  - bug
+body:
+  - type: dropdown
+    id: component
+    attributes:
+      label: 影响组件
+      options:
+        - 控制网页
+        - Windows Server / 管理器
+        - Windows Agent
+        - Android Agent
+        - 安装、构建或发布
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: 版本
+      placeholder: 例如 2026.07.30.3 / Android 1.6.8
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: 复现步骤
+      description: 请勿填写密码、真实设备身份凭据或未脱敏日志。
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: 预期结果
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: 实际结果
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: 环境
+      description: Windows/Android 版本、设备类型、网络方式；IP 请脱敏。

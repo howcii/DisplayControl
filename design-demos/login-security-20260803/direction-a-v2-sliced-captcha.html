@@ -1,0 +1,303 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f5f8fd">
+  <title>方案 A 深化 · 分段波形验证码预览</title>
+  <!--
+    设计假设：沿用已确认的方案 A，只深化验证码，不调整正式页面结构。
+    本页是静态视觉预览；字符仅用于展示，正式验证码不会将答案以 SVG 文本发送到浏览器。
+  -->
+  <style>
+    :root {
+      --bg: #f5f8fd;
+      --surface: #ffffff;
+      --soft: #eef5ff;
+      --line: #dbe5f0;
+      --text: #0f172a;
+      --muted: #64748b;
+      --blue: #2563eb;
+      --blue-strong: #1d4ed8;
+      --green: #15803d;
+      --red: #b42318;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-width: 320px;
+      min-height: 100vh;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 78% 26%, rgba(37, 99, 235, .055), transparent 28%),
+        linear-gradient(180deg, #fbfdff 0 68%, #eef4fb 100%);
+      font: 15px/1.55 "Microsoft YaHei UI", "Segoe UI", sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    button, input { font: inherit; }
+    button { cursor: pointer; }
+    input:focus-visible, button:focus-visible {
+      outline: 3px solid rgba(37, 99, 235, .26);
+      outline-offset: 2px;
+    }
+
+    header {
+      height: 76px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(255, 255, 255, .96);
+    }
+
+    .head {
+      max-width: 1240px;
+      height: 100%;
+      margin: auto;
+      padding: 0 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .mark {
+      width: 44px;
+      height: 44px;
+      border-radius: 14px;
+      display: grid;
+      place-items: center;
+      color: #fff;
+      background: var(--blue);
+      box-shadow: 0 8px 20px rgba(37, 99, 235, .2);
+    }
+    .mark svg { width: 23px; fill: none; stroke: currentColor; stroke-width: 1.8; }
+    .name { font-size: 19px; font-weight: 800; }
+    .sub { color: var(--muted); font-size: 12px; }
+    .online { display: flex; align-items: center; gap: 8px; color: var(--green); font-weight: 700; font-size: 13px; }
+    .dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+
+    main {
+      position: relative;
+      min-height: calc(100vh - 76px);
+      display: grid;
+      place-items: center;
+      padding: 46px 28px 72px;
+    }
+
+    .layout {
+      width: min(1120px, 100%);
+      display: grid;
+      grid-template-columns: 1fr 430px;
+      gap: 76px;
+      align-items: center;
+    }
+
+    .eyebrow { color: var(--blue); font-size: 13px; font-weight: 800; letter-spacing: .08em; }
+    .intro h1 {
+      max-width: 10ch;
+      margin: 14px 0 18px;
+      font-size: 48px;
+      line-height: 1.16;
+      letter-spacing: -.045em;
+      text-wrap: balance;
+    }
+    .intro > p { max-width: 555px; margin: 0; color: var(--muted); font-size: 16px; }
+    .facts { display: flex; gap: 12px; margin-top: 28px; }
+    .fact { padding: 10px 13px; border: 1px solid var(--line); border-radius: 10px; background: rgba(255, 255, 255, .76); color: #334155; font-size: 13px; }
+    .fact strong { color: var(--text); }
+
+    .card {
+      padding: 30px;
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      background: var(--surface);
+      box-shadow: 0 22px 58px rgba(30, 64, 175, .11);
+    }
+    .card h2 { margin: 0 0 4px; font-size: 23px; }
+    .card > p { margin: 0 0 22px; color: var(--muted); font-size: 14px; }
+    .stack { display: grid; gap: 15px; }
+    label { display: grid; gap: 7px; color: #334155; font-size: 14px; font-weight: 700; }
+    input {
+      width: 100%;
+      height: 46px;
+      padding: 0 13px;
+      border: 1px solid #cbd9ea;
+      border-radius: 10px;
+      color: var(--text);
+      background: #fff;
+    }
+    input::placeholder { color: #94a3b8; }
+
+    .caprow { display: grid; grid-template-columns: 1fr 184px; gap: 10px; }
+    .captcha {
+      height: 58px;
+      padding: 0;
+      overflow: hidden;
+      border: 1px solid #a9c8ee;
+      border-radius: 11px;
+      background: #f8fbff;
+      box-shadow: inset 0 0 0 2px rgba(219, 234, 254, .38);
+    }
+    .captcha svg { display: block; width: 100%; height: 100%; }
+    .hint { display: flex; justify-content: space-between; color: var(--muted); font-size: 12px; font-weight: 400; }
+    .hint span:last-child { color: var(--blue); }
+    .submit { height: 48px; border: 1px solid var(--blue); border-radius: 10px; color: #fff; background: var(--blue); font-weight: 800; }
+    .submit:hover { background: var(--blue-strong); }
+
+    .zoom {
+      position: absolute;
+      left: max(28px, calc((100vw - 1240px) / 2 + 28px));
+      bottom: 24px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 12px 14px;
+      border: 1px solid #cbdced;
+      border-radius: 14px;
+      background: rgba(255, 255, 255, .96);
+      box-shadow: 0 12px 30px rgba(30, 64, 175, .09);
+    }
+    .zoom-copy { width: 156px; }
+    .zoom-copy strong { display: block; font-size: 13px; }
+    .zoom-copy span { display: block; margin-top: 2px; color: var(--muted); font-size: 12px; }
+    .zoom-art {
+      width: 294px;
+      height: 92px;
+      overflow: hidden;
+      border: 1px solid #b9d1ec;
+      border-radius: 12px;
+      background: #f8fbff;
+    }
+    .zoom-art svg { display: block; width: 100%; height: 100%; }
+    .preview-tag {
+      position: absolute;
+      right: max(28px, calc((100vw - 1240px) / 2 + 28px));
+      bottom: 28px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+    .preview-tag b { color: var(--blue); }
+
+    @media (max-width: 1000px) {
+      .layout { grid-template-columns: 1fr 420px; gap: 36px; }
+      .zoom { display: none; }
+    }
+    @media (max-width: 850px) {
+      .layout { grid-template-columns: 1fr; }
+      .intro { display: none; }
+      .card { max-width: 430px; margin: auto; }
+      .preview-tag { display: none; }
+      main { display: block; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="head">
+      <div class="brand">
+        <div class="mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+        </div>
+        <div><div class="name">屏控中心</div><div class="sub">企业展示屏集中控制系统</div></div>
+      </div>
+      <div class="online"><span class="dot"></span>HTTP 在线</div>
+    </div>
+  </header>
+
+  <main>
+    <div class="layout">
+      <section class="intro" aria-labelledby="preview-title">
+        <div class="eyebrow">安全访问 · 唯一管理席位</div>
+        <h1 id="preview-title">集中管理公司的显示设备</h1>
+        <p>从一个网页查看真实状态，统一亮屏、休眠或启用黑幕遮罩。新设备登录后，旧设备会自动安全退出。</p>
+        <div class="facts"><div class="fact"><strong>单一设备</strong> 同时在线</div><div class="fact"><strong>8 小时</strong> 登录有效期</div></div>
+      </section>
+
+      <form class="card" onsubmit="event.preventDefault()" novalidate>
+        <h2>管理员登录</h2>
+        <p>请输入账号、密码和图形验证码。</p>
+        <div class="stack">
+          <label for="preview-user">用户名<input id="preview-user" value="admin" autocomplete="username" spellcheck="false"></label>
+          <label for="preview-pass">密码<input id="preview-pass" type="password" autocomplete="current-password" placeholder="请输入管理员密码…"></label>
+          <label for="preview-code">验证码
+            <div class="caprow">
+              <input id="preview-code" maxlength="5" autocomplete="off" spellcheck="false" placeholder="5 位字母或数字…">
+              <button class="captcha" type="button" aria-label="更换验证码">
+                <svg viewBox="0 0 184 58" role="img" aria-label="验证码 T8K4R">
+                  <defs>
+                    <clipPath id="sm-top"><rect x="0" y="0" width="184" height="20"/></clipPath>
+                    <clipPath id="sm-mid"><rect x="0" y="21.5" width="184" height="17"/></clipPath>
+                    <clipPath id="sm-bot"><rect x="0" y="40" width="184" height="18"/></clipPath>
+                    <filter id="sm-wave" x="-8" y="-8" width="200" height="74" filterUnits="userSpaceOnUse">
+                      <feTurbulence type="fractalNoise" baseFrequency=".012 .075" numOctaves="1" seed="12" result="noise"/>
+                      <feDisplacementMap in="SourceGraphic" in2="noise" scale="2.6" xChannelSelector="R" yChannelSelector="G"/>
+                    </filter>
+                    <g id="sm-glyphs" font-family="Georgia, Cambria, serif" font-size="35" font-weight="800">
+                      <text x="13" y="43" fill="#326b42" transform="rotate(-12 23 29) skewX(-7)">T</text>
+                      <text x="45" y="40" fill="#a43846" transform="rotate(9 54 28) scale(.92 1.08)">8</text>
+                      <text x="77" y="44" fill="#334155" transform="rotate(-8 89 29) skewX(8)">K</text>
+                      <text x="115" y="40" fill="#2563eb" transform="rotate(12 125 29) scale(.9 1.1)">4</text>
+                      <text x="149" y="43" fill="#6d4abb" transform="rotate(-7 160 29) skewX(-5)">R</text>
+                    </g>
+                  </defs>
+                  <rect x=".5" y=".5" width="183" height="57" rx="10.5" fill="#f8fbff" stroke="#bfdbfe"/>
+                  <g opacity=".3" fill="#60a5fa"><circle cx="17" cy="13" r="1.2"/><circle cx="53" cy="49" r="1.1"/><circle cx="95" cy="9" r="1"/><circle cx="136" cy="46" r="1.3"/><circle cx="171" cy="18" r="1"/></g>
+                  <path d="M4 35 C35 13 68 46 101 24 S150 17 181 30" fill="none" stroke="#64748b" stroke-width="1.15" opacity=".42"/>
+                  <path d="M5 20 C44 37 80 9 120 33 S158 38 181 21" fill="none" stroke="#3b82f6" stroke-width="1" opacity=".3"/>
+                  <g filter="url(#sm-wave)">
+                    <g clip-path="url(#sm-top)" transform="translate(-2 0)"><use href="#sm-glyphs"/></g>
+                    <g clip-path="url(#sm-mid)" transform="translate(3 0)"><use href="#sm-glyphs"/></g>
+                    <g clip-path="url(#sm-bot)" transform="translate(-1 0)"><use href="#sm-glyphs"/></g>
+                  </g>
+                  <path d="M8 21h168M8 39h168" stroke="#f8fbff" stroke-width="1.7" opacity=".95"/>
+                  <path d="M8 21h168M8 39h168" stroke="#8fb4df" stroke-width=".55" stroke-dasharray="10 7" opacity=".5"/>
+                </svg>
+              </button>
+            </div>
+            <span class="hint"><span>不区分大小写</span><span>点击图片更换</span></span>
+          </label>
+          <button class="submit" type="submit">登录屏控中心</button>
+        </div>
+      </form>
+    </div>
+
+    <aside class="zoom" aria-label="验证码局部放大预览">
+      <div class="zoom-copy"><strong>验证码局部放大</strong><span>三段切片错位 + 轻波形，保留人眼可读性</span></div>
+      <div class="zoom-art">
+        <svg viewBox="0 0 184 58" role="img" aria-label="验证码放大预览 T8K4R">
+          <defs>
+            <clipPath id="lg-top"><rect x="0" y="0" width="184" height="20"/></clipPath>
+            <clipPath id="lg-mid"><rect x="0" y="21.5" width="184" height="17"/></clipPath>
+            <clipPath id="lg-bot"><rect x="0" y="40" width="184" height="18"/></clipPath>
+            <filter id="lg-wave" x="-8" y="-8" width="200" height="74" filterUnits="userSpaceOnUse">
+              <feTurbulence type="fractalNoise" baseFrequency=".012 .075" numOctaves="1" seed="12" result="noise"/>
+              <feDisplacementMap in="SourceGraphic" in2="noise" scale="2.6" xChannelSelector="R" yChannelSelector="G"/>
+            </filter>
+            <g id="lg-glyphs" font-family="Georgia, Cambria, serif" font-size="35" font-weight="800">
+              <text x="13" y="43" fill="#326b42" transform="rotate(-12 23 29) skewX(-7)">T</text>
+              <text x="45" y="40" fill="#a43846" transform="rotate(9 54 28) scale(.92 1.08)">8</text>
+              <text x="77" y="44" fill="#334155" transform="rotate(-8 89 29) skewX(8)">K</text>
+              <text x="115" y="40" fill="#2563eb" transform="rotate(12 125 29) scale(.9 1.1)">4</text>
+              <text x="149" y="43" fill="#6d4abb" transform="rotate(-7 160 29) skewX(-5)">R</text>
+            </g>
+          </defs>
+          <rect x=".5" y=".5" width="183" height="57" rx="10.5" fill="#f8fbff" stroke="#bfdbfe"/>
+          <g opacity=".3" fill="#60a5fa"><circle cx="17" cy="13" r="1.2"/><circle cx="53" cy="49" r="1.1"/><circle cx="95" cy="9" r="1"/><circle cx="136" cy="46" r="1.3"/><circle cx="171" cy="18" r="1"/></g>
+          <path d="M4 35 C35 13 68 46 101 24 S150 17 181 30" fill="none" stroke="#64748b" stroke-width="1.15" opacity=".42"/>
+          <path d="M5 20 C44 37 80 9 120 33 S158 38 181 21" fill="none" stroke="#3b82f6" stroke-width="1" opacity=".3"/>
+          <g filter="url(#lg-wave)">
+            <g clip-path="url(#lg-top)" transform="translate(-2 0)"><use href="#lg-glyphs"/></g>
+            <g clip-path="url(#lg-mid)" transform="translate(3 0)"><use href="#lg-glyphs"/></g>
+            <g clip-path="url(#lg-bot)" transform="translate(-1 0)"><use href="#lg-glyphs"/></g>
+          </g>
+          <path d="M8 21h168M8 39h168" stroke="#f8fbff" stroke-width="1.7" opacity=".95"/>
+          <path d="M8 21h168M8 39h168" stroke="#8fb4df" stroke-width=".55" stroke-dasharray="10 7" opacity=".5"/>
+        </svg>
+      </div>
+    </aside>
+
+    <div class="preview-tag"><b>方案 A 深化预览</b> · 仅改验证码，尚未写入正式网页</div>
+  </main>
+</body>
+</html>

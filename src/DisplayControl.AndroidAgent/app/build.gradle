@@ -1,0 +1,38 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'com.displaycontrol.androidagent'
+    compileSdk 35
+
+    defaultConfig {
+        applicationId 'com.displaycontrol.androidagent'
+        minSdk 23
+        // 现场设备不经过应用商店分发。targetSdk 28 可以保持旧版后台启动黑幕界面的兼容行为，
+        // 避免 Android 10+ 的后台 Activity 限制让“黑幕遮挡”指令无法立即显示。
+        targetSdk 28
+        versionCode 25
+        versionName '1.6.9'
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    buildTypes {
+        release {
+            // 现场侧载测试包：用 debug keystore 签 release 产物，确保 APK 可直接安装。
+            // 生产如需独立证书，可后续替换为公司正式 keystore。
+            signingConfig signingConfigs.debug
+            minifyEnabled false
+        }
+    }
+
+    lint {
+        // 本项目是公司现场侧载 APK，不走 Google Play 分发。
+        // targetSdk 28 是为了保留旧版 Agent 可从前台服务快速拉起黑幕 Activity 的现场兼容行为。
+        disable 'ExpiredTargetSdkVersion'
+    }
+}

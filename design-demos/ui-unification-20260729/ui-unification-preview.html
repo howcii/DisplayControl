@@ -1,0 +1,1260 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>显示屏控制系统 UI 统一预览 · 2026-07-29</title>
+  <style>
+    /*
+      设计假设：
+      - 项目是多台会议/展示显示屏的局域网控制系统，目标是稳定、清晰、低学习成本。
+      - 四端必须同一视觉语言，但不能硬套同一布局：网页偏总控，Win Server 偏运维，Win Agent 偏配置，Android Agent 偏现场权限与状态。
+      - 现场使用包含 86 寸会议一体机、Windows 笔记本、安卓显示屏，因此字号、状态颜色和按钮反馈要比普通后台系统更“远距离可读”。
+      - 本文件只做方向预览，不改正式源码。用户确认方向后，再把设计 token 落到 C#/HTML/Android Java。
+    */
+
+    :root {
+      --font-ui: "Microsoft YaHei UI", "Segoe UI", "PingFang SC", system-ui, sans-serif;
+      --font-num: "Bahnschrift", "Segoe UI", "Microsoft YaHei UI", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      min-height: 100%;
+      background: #111827;
+      color: #111827;
+      font-family: var(--font-ui);
+      font-synthesis: none;
+    }
+
+    body {
+      overflow-x: hidden;
+    }
+
+    .board {
+      width: 1920px;
+      height: 1080px;
+      padding: 42px 52px;
+      display: grid;
+      grid-template-rows: 116px 1fr;
+      gap: 28px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .board::before,
+    .board::after {
+      content: "";
+      position: absolute;
+      pointer-events: none;
+      border-radius: 999px;
+      filter: blur(2px);
+    }
+
+    .board-header {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: end;
+      gap: 36px;
+    }
+
+    .eyebrow {
+      margin-bottom: 12px;
+      color: var(--accent);
+      font-size: 18px;
+      font-weight: 800;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 0;
+      color: var(--ink);
+      font-size: 50px;
+      line-height: 1.08;
+      letter-spacing: -0.02em;
+      text-wrap: balance;
+    }
+
+    .board-subtitle {
+      margin-top: 12px;
+      color: var(--muted);
+      font-size: 21px;
+      line-height: 1.55;
+      text-wrap: pretty;
+    }
+
+    .tokens {
+      min-width: 510px;
+      padding: 18px 20px;
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      background: var(--glass);
+      color: var(--muted);
+      box-shadow: var(--soft-shadow);
+    }
+
+    .tokens-title {
+      margin-bottom: 12px;
+      color: var(--ink);
+      font-size: 16px;
+      font-weight: 900;
+    }
+
+    .token-row {
+      display: grid;
+      grid-template-columns: 90px 1fr;
+      gap: 12px;
+      font-size: 14px;
+      line-height: 1.55;
+    }
+
+    .token-row span:first-child {
+      color: var(--muted-2);
+      font-weight: 800;
+    }
+
+    .swatches {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .swatch {
+      width: 36px;
+      height: 18px;
+      border-radius: 999px;
+      border: 1px solid color-mix(in srgb, var(--line), transparent 15%);
+      background: var(--swatch);
+    }
+
+    .canvas {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      grid-template-columns: 1.12fr .88fr;
+      gap: 28px;
+      min-height: 0;
+    }
+
+    .left-stack,
+    .right-stack {
+      display: grid;
+      gap: 24px;
+      min-height: 0;
+    }
+
+    .left-stack {
+      grid-template-rows: 455px 1fr;
+    }
+
+    .right-stack {
+      grid-template-rows: 420px 1fr;
+    }
+
+    .mock {
+      min-width: 0;
+      min-height: 0;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--panel);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      color: var(--ink);
+    }
+
+    .mock-top {
+      height: 46px;
+      padding: 0 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--line);
+      background: var(--panel-top);
+      color: var(--muted);
+      font-size: 15px;
+      font-weight: 800;
+    }
+
+    .traffic {
+      display: flex;
+      gap: 8px;
+    }
+
+    .traffic span {
+      width: 11px;
+      height: 11px;
+      border-radius: 50%;
+      background: var(--line-strong);
+    }
+
+    .mock-body {
+      padding: 18px;
+    }
+
+    .web-body {
+      height: calc(100% - 46px);
+      display: grid;
+      grid-template-columns: 220px 1fr;
+      padding: 0;
+    }
+
+    .side {
+      padding: 24px 18px;
+      border-right: 1px solid var(--line);
+      background: var(--side);
+    }
+
+    .brand-lockup {
+      display: flex;
+      gap: 13px;
+      align-items: center;
+      margin-bottom: 32px;
+    }
+
+    .mark {
+      width: 48px;
+      height: 48px;
+      display: grid;
+      place-items: center;
+      border-radius: 16px;
+      background: var(--primary);
+      color: var(--primary-ink);
+      box-shadow: var(--mark-shadow);
+      font-size: 25px;
+      font-weight: 900;
+    }
+
+    .brand-title {
+      color: var(--ink);
+      font-size: 22px;
+      font-weight: 950;
+      line-height: 1.15;
+    }
+
+    .brand-caption {
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .nav-item {
+      height: 46px;
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      padding: 0 14px;
+      border-radius: 14px;
+      color: var(--muted);
+      font-weight: 800;
+      margin-bottom: 8px;
+    }
+
+    .nav-item.active {
+      background: var(--active-soft);
+      color: var(--primary);
+    }
+
+    .web-main {
+      min-width: 0;
+      padding: 20px 24px;
+      background: var(--page);
+    }
+
+    .web-head {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 24px;
+      align-items: start;
+      margin-bottom: 12px;
+    }
+
+    .web-title {
+      margin: 0;
+      color: var(--ink);
+      font-size: 30px;
+      line-height: 1.15;
+      font-weight: 950;
+    }
+
+    .web-desc {
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 16px;
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      min-height: 38px;
+      padding: 0 14px;
+      border: 1px solid var(--pill-line);
+      border-radius: 999px;
+      background: var(--pill);
+      color: var(--pill-ink);
+      font-weight: 900;
+      white-space: nowrap;
+    }
+
+    .dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: currentColor;
+      box-shadow: 0 0 0 5px color-mix(in srgb, currentColor, transparent 82%);
+    }
+
+    .metric-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+
+    .metric {
+      min-height: 76px;
+      padding: 10px 13px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: var(--panel);
+    }
+
+    .metric .label {
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .metric .value {
+      margin-top: 6px;
+      color: var(--ink);
+      font-family: var(--font-num);
+      font-size: 34px;
+      font-weight: 900;
+      line-height: 1;
+    }
+
+    .metric .hint {
+      margin-top: 6px;
+      color: var(--muted-2);
+      font-size: 12px;
+    }
+
+    .toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 8px;
+      padding: 10px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: var(--panel);
+    }
+
+    .segmented {
+      display: inline-flex;
+      padding: 5px;
+      gap: 4px;
+      border-radius: 16px;
+      background: var(--active-soft);
+    }
+
+    .segmented span {
+      display: inline-flex;
+      align-items: center;
+      min-height: 36px;
+      padding: 0 14px;
+      border-radius: 12px;
+      color: var(--muted);
+      font-weight: 900;
+    }
+
+    .segmented span.active {
+      background: var(--panel);
+      color: var(--primary);
+      box-shadow: var(--mini-shadow);
+    }
+
+    .button-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 42px;
+      padding: 0 16px;
+      border-radius: 13px;
+      border: 1px solid var(--btn-line);
+      background: var(--btn-bg);
+      color: var(--btn-ink);
+      font-weight: 950;
+      box-shadow: var(--button-shadow);
+      white-space: nowrap;
+    }
+
+    .btn.primary {
+      border-color: transparent;
+      background: var(--primary);
+      color: var(--primary-ink);
+    }
+
+    .btn.warn {
+      color: var(--warning);
+    }
+
+    .btn.danger {
+      color: var(--danger);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: var(--panel);
+      font-size: 14px;
+    }
+
+    .web-main tbody tr:nth-child(n+2) {
+      display: none;
+    }
+
+    th, td {
+      padding: 7px 13px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: middle;
+    }
+
+    th {
+      color: var(--muted);
+      background: var(--table-head);
+      font-size: 13px;
+      font-weight: 950;
+    }
+
+    tr:last-child td { border-bottom: 0; }
+
+    .device-name {
+      color: var(--ink);
+      font-weight: 950;
+    }
+
+    .device-id {
+      color: var(--muted-2);
+      font-size: 12px;
+      font-family: var(--font-num);
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      min-height: 28px;
+      padding: 0 10px;
+      border-radius: 999px;
+      background: var(--tag-bg);
+      color: var(--tag-ink);
+      font-weight: 900;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .tag.ok { --tag-bg: var(--ok-soft); --tag-ink: var(--ok); }
+    .tag.sleep { --tag-bg: var(--sleep-soft); --tag-ink: var(--sleep); }
+    .tag.black { --tag-bg: var(--black-soft); --tag-ink: var(--black-ink); }
+    .tag.off { --tag-bg: var(--off-soft); --tag-ink: var(--muted); }
+
+    .manager-body {
+      height: calc(100% - 46px);
+      padding: 18px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: 70px 1fr 1fr;
+      gap: 12px;
+      background: var(--page);
+    }
+
+    .manager-title {
+      grid-column: 1 / -1;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 18px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: var(--panel);
+    }
+
+    .manager-title strong {
+      display: block;
+      color: var(--ink);
+      font-size: 27px;
+      line-height: 1.1;
+    }
+
+    .manager-title span {
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .mini-card {
+      min-width: 0;
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: var(--panel);
+    }
+
+    .mini-label {
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 900;
+    }
+
+    .mini-value {
+      margin-top: 6px;
+      color: var(--ink);
+      font-size: 29px;
+      font-weight: 950;
+      line-height: 1.1;
+    }
+
+    .address-list {
+      margin-top: 8px;
+      color: var(--primary);
+      font-family: var(--font-num);
+      font-size: 14px;
+      line-height: 1.7;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .server-actions {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .log-box {
+      height: 58px;
+      margin-top: 8px;
+      padding: 10px;
+      border-radius: 13px;
+      border: 1px solid var(--line);
+      background: var(--code-bg);
+      color: var(--code-ink);
+      font-family: "Cascadia Mono", Consolas, monospace;
+      font-size: 12px;
+      line-height: 1.55;
+      overflow: hidden;
+    }
+
+    .agent-body {
+      height: calc(100% - 46px);
+      padding: 18px;
+      display: grid;
+      grid-template-columns: 1fr 255px;
+      gap: 16px;
+      background: var(--page);
+    }
+
+    .agent-form {
+      padding: 16px;
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      background: var(--panel);
+    }
+
+    .form-title {
+      color: var(--ink);
+      font-size: 26px;
+      font-weight: 950;
+      line-height: 1.1;
+    }
+
+    .form-subtitle {
+      margin-top: 5px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .field-grid {
+      display: grid;
+      grid-template-columns: 108px 1fr;
+      gap: 8px 12px;
+      margin-top: 12px;
+      align-items: center;
+    }
+
+    .field-grid label {
+      color: var(--muted);
+      font-size: 14px;
+      font-weight: 900;
+    }
+
+    .input {
+      min-height: 36px;
+      padding: 0 12px;
+      display: flex;
+      align-items: center;
+      border: 1px solid var(--input-line);
+      border-radius: 12px;
+      background: var(--input-bg);
+      color: var(--ink);
+      font-family: var(--font-num);
+      font-size: 15px;
+    }
+
+    .agent-actions {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+      margin-top: 14px;
+    }
+
+    .agent-actions .btn:nth-child(n+4) {
+      display: none;
+    }
+
+    .agent-aside {
+      display: grid;
+      grid-template-rows: auto 1fr;
+      gap: 14px;
+    }
+
+    .status-large {
+      padding: 15px;
+      border-radius: 20px;
+      border: 1px solid var(--line);
+      background: var(--success-panel);
+      color: var(--ok);
+      text-align: center;
+      font-size: 20px;
+      font-weight: 950;
+    }
+
+    .agent-log {
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      background: var(--code-bg);
+      color: var(--code-ink);
+      font-family: "Cascadia Mono", Consolas, monospace;
+      font-size: 12px;
+      line-height: 1.6;
+      overflow: hidden;
+    }
+
+    .android-frame {
+      height: 100%;
+      display: grid;
+      grid-template-columns: 275px 1fr;
+      gap: 16px;
+      padding: 16px;
+      background: var(--page);
+    }
+
+    .phone {
+      height: 100%;
+      padding: 16px;
+      border: 1px solid var(--line);
+      border-radius: 32px;
+      background: var(--phone-bg);
+      box-shadow: var(--phone-shadow);
+      overflow: hidden;
+    }
+
+    .phone-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 15px;
+    }
+
+    .app-icon {
+      width: 42px;
+      height: 42px;
+      border-radius: 14px;
+      display: grid;
+      place-items: center;
+      background: var(--primary);
+      color: var(--primary-ink);
+      font-size: 24px;
+      font-weight: 900;
+    }
+
+    .phone-title {
+      color: var(--ink);
+      font-size: 20px;
+      font-weight: 950;
+      line-height: 1.15;
+    }
+
+    .phone-small {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .phone-section {
+      padding: 13px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: var(--panel);
+      margin-bottom: 12px;
+    }
+
+    .phone-section h3 {
+      margin: 0 0 10px;
+      color: var(--ink);
+      font-size: 15px;
+    }
+
+    .phone-status-lines {
+      color: var(--primary);
+      font-size: 12px;
+      font-weight: 800;
+      line-height: 1.65;
+    }
+
+    .phone-input {
+      height: 34px;
+      padding: 0 9px;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      border-radius: 10px;
+      border: 1px solid var(--input-line);
+      color: var(--muted);
+      background: var(--input-bg);
+      font-size: 12px;
+      font-family: var(--font-num);
+    }
+
+    .phone-buttons {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .phone-buttons .btn {
+      min-height: 34px;
+      padding: 0 8px;
+      border-radius: 10px;
+      font-size: 12px;
+    }
+
+    .android-side {
+      display: grid;
+      grid-template-rows: auto 1fr;
+      gap: 14px;
+    }
+
+    .side-note {
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      background: var(--panel);
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.65;
+    }
+
+    .side-note strong {
+      color: var(--ink);
+      font-size: 18px;
+    }
+
+    .permission-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .permission {
+      min-height: 74px;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: var(--soft);
+    }
+
+    .permission b {
+      display: block;
+      color: var(--ink);
+      font-size: 13px;
+    }
+
+    .permission span {
+      display: block;
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.4;
+    }
+
+    .caption-line {
+      position: absolute;
+      right: 54px;
+      bottom: 28px;
+      color: var(--muted-2);
+      font-size: 13px;
+      letter-spacing: .04em;
+    }
+
+    /* Direction A: calm command center */
+    .direction-a {
+      --ink: #0f172a;
+      --muted: #64748b;
+      --muted-2: #94a3b8;
+      --accent: #2563eb;
+      --primary: #2563eb;
+      --primary-ink: #fff;
+      --page: #f6f8fc;
+      --panel: #fff;
+      --panel-top: #fbfdff;
+      --side: #f9fbff;
+      --glass: rgba(255, 255, 255, .82);
+      --line: #dbe5f0;
+      --line-strong: #bfd0e3;
+      --active-soft: #eaf2ff;
+      --pill: #eafaf2;
+      --pill-line: #b8edce;
+      --pill-ink: #128247;
+      --btn-bg: #fff;
+      --btn-line: #cbd9ea;
+      --btn-ink: #0f172a;
+      --ok: #128247;
+      --ok-soft: #eafaf2;
+      --sleep: #7c3aed;
+      --sleep-soft: #f1edff;
+      --black-ink: #111827;
+      --black-soft: #eef2f7;
+      --off-soft: #f3f6fa;
+      --warning: #b45309;
+      --danger: #dc2626;
+      --table-head: #f3f7fb;
+      --input-bg: #fff;
+      --input-line: #cbd9ea;
+      --soft: #f5f8fc;
+      --code-bg: #f8fafc;
+      --code-ink: #526279;
+      --success-panel: #ecfdf3;
+      --phone-bg: #f8fbff;
+      --radius: 28px;
+      --shadow: 0 22px 50px rgba(30, 64, 175, .11);
+      --soft-shadow: 0 14px 34px rgba(30, 64, 175, .10);
+      --mini-shadow: 0 8px 20px rgba(15, 23, 42, .08);
+      --button-shadow: 0 6px 14px rgba(37, 99, 235, .10);
+      --mark-shadow: 0 12px 24px rgba(37, 99, 235, .26);
+      --phone-shadow: 0 20px 38px rgba(37, 99, 235, .14);
+      background: radial-gradient(circle at 82% 8%, rgba(37, 99, 235, .12), transparent 28%), linear-gradient(180deg, #f8fbff, #eff4fb);
+    }
+
+    .direction-a::before {
+      width: 560px;
+      height: 560px;
+      right: -180px;
+      top: 70px;
+      background: rgba(37, 99, 235, .10);
+    }
+
+    /* Direction B: dark operations wall */
+    .direction-b {
+      --ink: #e5eefb;
+      --muted: #9db0c9;
+      --muted-2: #71849e;
+      --accent: #67e8f9;
+      --primary: #22d3ee;
+      --primary-ink: #06242c;
+      --page: #07111f;
+      --panel: #0d1b2f;
+      --panel-top: #0a1627;
+      --side: #091424;
+      --glass: rgba(13, 27, 47, .76);
+      --line: rgba(148, 163, 184, .22);
+      --line-strong: rgba(148, 163, 184, .35);
+      --active-soft: rgba(34, 211, 238, .10);
+      --pill: rgba(20, 184, 166, .12);
+      --pill-line: rgba(45, 212, 191, .32);
+      --pill-ink: #5eead4;
+      --btn-bg: #0b1728;
+      --btn-line: rgba(148, 163, 184, .28);
+      --btn-ink: #dbeafe;
+      --ok: #5eead4;
+      --ok-soft: rgba(20, 184, 166, .13);
+      --sleep: #c4b5fd;
+      --sleep-soft: rgba(124, 58, 237, .18);
+      --black-ink: #e2e8f0;
+      --black-soft: rgba(15, 23, 42, .95);
+      --off-soft: rgba(148, 163, 184, .10);
+      --warning: #fbbf24;
+      --danger: #fb7185;
+      --table-head: #0a1728;
+      --input-bg: #071321;
+      --input-line: rgba(148, 163, 184, .28);
+      --soft: rgba(148, 163, 184, .08);
+      --code-bg: #050b14;
+      --code-ink: #93c5fd;
+      --success-panel: rgba(20, 184, 166, .10);
+      --phone-bg: #091424;
+      --radius: 24px;
+      --shadow: 0 28px 70px rgba(0, 0, 0, .35);
+      --soft-shadow: 0 18px 45px rgba(0, 0, 0, .24);
+      --mini-shadow: 0 8px 20px rgba(0, 0, 0, .22);
+      --button-shadow: 0 0 0 1px rgba(34, 211, 238, .06), 0 12px 24px rgba(34, 211, 238, .08);
+      --mark-shadow: 0 0 28px rgba(34, 211, 238, .32);
+      --phone-shadow: 0 22px 40px rgba(0, 0, 0, .32);
+      background: radial-gradient(circle at 14% 18%, rgba(34, 211, 238, .10), transparent 26%), radial-gradient(circle at 90% 70%, rgba(20, 184, 166, .10), transparent 28%), #050b14;
+    }
+
+    .direction-b .metric,
+    .direction-b .mini-card,
+    .direction-b table,
+    .direction-b .toolbar,
+    .direction-b .agent-form,
+    .direction-b .phone-section,
+    .direction-b .side-note {
+      backdrop-filter: blur(10px);
+    }
+
+    .direction-b::before {
+      width: 760px;
+      height: 760px;
+      left: -220px;
+      top: -280px;
+      border: 1px solid rgba(34, 211, 238, .15);
+      background: transparent;
+    }
+
+    /* Direction C: device-board warm industrial */
+    .direction-c {
+      --ink: #1f2933;
+      --muted: #667085;
+      --muted-2: #98a2b3;
+      --accent: #0f766e;
+      --primary: #0f766e;
+      --primary-ink: #fff;
+      --page: #f4f1ea;
+      --panel: #fffdf8;
+      --panel-top: #fbf7ee;
+      --side: #eee8dc;
+      --glass: rgba(255, 253, 248, .86);
+      --line: #ddd5c8;
+      --line-strong: #c8bcae;
+      --active-soft: #e3f1ed;
+      --pill: #eaf7f0;
+      --pill-line: #b8e3cf;
+      --pill-ink: #087443;
+      --btn-bg: #fffdf8;
+      --btn-line: #cbbfaf;
+      --btn-ink: #1f2933;
+      --ok: #087443;
+      --ok-soft: #eaf7f0;
+      --sleep: #7c4a03;
+      --sleep-soft: #fff5dd;
+      --black-ink: #1f2933;
+      --black-soft: #ece6dd;
+      --off-soft: #f2ede5;
+      --warning: #b45309;
+      --danger: #c2410c;
+      --table-head: #ede7dc;
+      --input-bg: #fffaf0;
+      --input-line: #d2c6b6;
+      --soft: #f2ede5;
+      --code-bg: #f8f3e8;
+      --code-ink: #667085;
+      --success-panel: #e7f5ef;
+      --phone-bg: #f8f1e5;
+      --radius: 18px;
+      --shadow: 0 18px 42px rgba(87, 75, 55, .12);
+      --soft-shadow: 0 14px 32px rgba(87, 75, 55, .10);
+      --mini-shadow: 0 8px 20px rgba(87, 75, 55, .08);
+      --button-shadow: none;
+      --mark-shadow: 0 12px 20px rgba(15, 118, 110, .22);
+      --phone-shadow: 0 18px 36px rgba(87, 75, 55, .16);
+      background: linear-gradient(135deg, #f6f1e8 0%, #ece5d8 100%);
+    }
+
+    .direction-c::before {
+      width: 100%;
+      height: 100%;
+      inset: 0;
+      opacity: .24;
+      border-radius: 0;
+      background:
+        linear-gradient(90deg, rgba(31, 41, 51, .08) 1px, transparent 1px) 0 0 / 48px 48px,
+        linear-gradient(0deg, rgba(31, 41, 51, .08) 1px, transparent 1px) 0 0 / 48px 48px;
+    }
+
+    .direction-c .mock,
+    .direction-c .metric,
+    .direction-c .toolbar,
+    .direction-c table,
+    .direction-c .mini-card,
+    .direction-c .manager-title,
+    .direction-c .agent-form,
+    .direction-c .phone-section,
+    .direction-c .side-note,
+    .direction-c .permission {
+      border-width: 1.5px;
+    }
+  </style>
+</head>
+<body>
+  <section class="board direction-a" id="direction-a">
+    <header class="board-header">
+      <div>
+        <div class="eyebrow">Direction A · 运营蓝白控制台</div>
+        <h1>熟悉、干净、稳定：把旧网页的专业感延伸到四个程序</h1>
+        <div class="board-subtitle">适合最快落地。保留你当前网页的蓝白基因，但把 Win 窗口和 Android 面板改成同一套卡片、按钮、状态徽标和排版节奏。</div>
+      </div>
+      <div class="tokens">
+        <div class="tokens-title">统一规则</div>
+        <div class="token-row"><span>色彩</span><div class="swatches"><i class="swatch" style="--swatch:#2563eb"></i><i class="swatch" style="--swatch:#128247"></i><i class="swatch" style="--swatch:#f8fafc"></i><i class="swatch" style="--swatch:#0f172a"></i></div></div>
+        <div class="token-row"><span>字体</span><div>微软雅黑 UI + Bahnschrift 数字，中文行距放大，防止现场大屏看糊。</div></div>
+        <div class="token-row"><span>母题</span><div>“设备中控台”：白底仪表盘、明确状态、主操作一眼可点。</div></div>
+      </div>
+    </header>
+    <div class="canvas">
+      <div class="left-stack">
+        <article class="mock">
+          <div class="mock-top"><span>控制网页 · 192.168.1.100:8080</span><span class="status-pill"><i class="dot"></i>HTTP 在线 · 4 台设备</span></div>
+          <div class="web-body">
+            <aside class="side">
+              <div class="brand-lockup"><div class="mark">▣</div><div><div class="brand-title">屏控中心</div><div class="brand-caption">企业展示屏集中控制</div></div></div>
+              <div class="nav-item active">▦ 设备管理</div>
+              <div class="nav-item">◎ 操作日志</div>
+              <div class="nav-item">⚙ 系统设置</div>
+            </aside>
+            <main class="web-main">
+              <div class="web-head">
+                <div><h2 class="web-title">展示屏实时状态</h2><div class="web-desc">点击命令后立即刷新回执；30 秒心跳继续做兜底校验。</div></div>
+                <div class="button-row"><span class="segmented"><span class="active">显示器休眠</span><span>黑幕遮罩</span></span><span class="btn primary">全部亮屏</span><span class="btn">全部休眠</span></div>
+              </div>
+              <div class="metric-grid">
+                <div class="metric"><div class="label">在线设备</div><div class="value">3</div><div class="hint">共 4 台</div></div>
+                <div class="metric"><div class="label">亮屏</div><div class="value">4</div><div class="hint">均已验证</div></div>
+                <div class="metric"><div class="label">休眠</div><div class="value">2</div><div class="hint">系统锁屏确认</div></div>
+                <div class="metric"><div class="label">黑幕</div><div class="value">0</div><div class="hint">遮罩层关闭</div></div>
+                <div class="metric"><div class="label">需处理</div><div class="value">1</div><div class="hint">ADB 权限待启用</div></div>
+              </div>
+              <div class="toolbar"><strong>设备列表</strong><div class="button-row"><span class="btn">选中亮屏</span><span class="btn">选中休眠</span><span class="btn">立即刷新</span></div></div>
+              <table><thead><tr><th>设备</th><th>IP 地址</th><th>真实状态</th><th>最后回执</th><th>控制</th></tr></thead><tbody>
+                <tr><td><div class="device-name">展示屏01</div><div class="device-id">screen-001 · Win Agent</div></td><td>192.168.1.101</td><td><span class="tag ok">亮屏 · 已验证</span></td><td>2026/07/29 15:12:08</td><td><span class="btn">亮屏</span> <span class="btn">休眠</span></td></tr>
+                <tr><td><div class="device-name">Android展示屏01</div><div class="device-id">android-agent-demo01</div></td><td>192.168.1.102</td><td><span class="tag sleep">休眠 · 已验证</span></td><td>休眠模式成功</td><td><span class="btn">亮屏</span> <span class="btn">黑幕</span></td></tr>
+              </tbody></table>
+            </main>
+          </div>
+        </article>
+        <article class="mock">
+          <div class="mock-top"><span>Windows Agent · 显示端配置</span><div class="traffic"><span></span><span></span><span></span></div></div>
+          <div class="agent-body">
+            <div class="agent-form">
+              <div class="form-title">显示屏控制 Agent</div><div class="form-subtitle">Windows 显示端 · 当前项目文件夹运行</div>
+              <div class="field-grid">
+                <label>服务器地址</label><div class="input">http://127.0.0.1:8080</div><label>设备编号</label><div class="input">screen-02</div><label>设备名称</label><div class="input">display-screen</div><label>心跳秒数</label><div class="input">30</div>
+              </div>
+              <div class="agent-actions"><span class="btn primary">保存并连接</span><span class="btn">断开连接</span><span class="btn">选择安装位置</span><span class="btn">本机黑幕测试</span><span class="btn">解除黑幕</span><span class="btn">开机启动</span></div>
+            </div>
+            <aside class="agent-aside"><div class="status-large">已连接</div><div class="agent-log">[15:11:40] 连接成功<br>[15:12:02] 执行命令：ShowBlackOverlay<br>[15:12:05] 回执：黑幕已验证<br>[15:12:18] 执行命令：TurnOn</div></aside>
+          </div>
+        </article>
+      </div>
+      <div class="right-stack">
+        <article class="mock">
+          <div class="mock-top"><span>Win Server · 服务管理器</span><div class="traffic"><span></span><span></span><span></span></div></div>
+          <div class="manager-body">
+            <div class="manager-title"><div><strong>显示屏控制服务器</strong><span>Server · Windows 服务管理器</span></div><span class="tag ok">Running</span></div>
+            <div class="mini-card"><div class="mini-label">服务状态</div><div class="mini-value">Running</div><div class="address-list">Windows 后台服务</div></div>
+            <div class="mini-card"><div class="mini-label">健康检查</div><div class="mini-value">Healthy</div><div class="address-list">网页与 API 可用</div></div>
+            <div class="mini-card"><div class="mini-label">访问地址</div><div class="address-list">本机网页：http://127.0.0.1:8080<br>局域网网页：http://192.168.1.100:8080</div><div class="server-actions"><span class="btn primary">打开控制网页</span><span class="btn">复制地址</span></div></div>
+            <div class="mini-card"><div class="mini-label">服务操作</div><div class="server-actions"><span class="btn primary">安装/更新</span><span class="btn">启动</span><span class="btn">停止</span><span class="btn danger">卸载</span></div><div class="log-box">[15:12:10] 已刷新服务状态<br>[15:12:11] 防火墙规则正常</div></div>
+          </div>
+        </article>
+        <article class="mock">
+          <div class="mock-top"><span>Android Agent · 展示屏端</span><span class="status-pill"><i class="dot"></i>已连接</span></div>
+          <div class="android-frame">
+            <div class="phone">
+              <div class="phone-head"><div><div class="phone-title">屏控助手</div><div class="phone-small">Android Agent</div></div><div class="app-icon">▣</div></div>
+              <div class="phone-section"><h3>当前状态</h3><div class="phone-status-lines">服务：已连接<br>设备：Android展示屏01<br>真实状态：亮屏（已验证）<br>最后回执：blackout / success</div></div>
+              <div class="phone-section"><h3>连接配置</h3><div class="phone-input">http://192.168.1.100:8080</div><div class="phone-input">android-screen-01</div><div class="phone-buttons"><span class="btn primary">保存配置</span><span class="btn">测试连接</span></div></div>
+            </div>
+            <div class="android-side">
+              <div class="side-note"><strong>Android 端策略</strong><br>状态在上，配置在下；权限问题直接转成现场可执行提示。黑幕、休眠、亮屏分别用明确按钮，不混成一个概念。</div>
+              <div class="permission-grid"><div class="permission"><b>系统休眠权限</b><span>已启用 / 或提示 ADB 方案</span></div><div class="permission"><b>后台稳定模式</b><span>减少被系统杀后台</span></div><div class="permission"><b>黑幕遮罩</b><span>沉浸全屏，无通知干扰</span></div><div class="permission"><b>现场退出</b><span>五连点黑屏区域恢复</span></div></div>
+            </div>
+          </div>
+        </article>
+      </div>
+    </div>
+    <div class="caption-line">预览稿 A：安全、统一、最接近当前网页，改造风险最低</div>
+  </section>
+
+  <section class="board direction-b" id="direction-b">
+    <header class="board-header">
+      <div>
+        <div class="eyebrow">Direction B · 墨蓝指挥台</div>
+        <h1>像控制室一样：状态优先、强对比、适合远距离监控</h1>
+        <div class="board-subtitle">更有“中控屏”气质。用暗色承载实时状态，绿色/青色表示可控，红色只留给真正异常；适合控制网页长期开在大屏上。</div>
+      </div>
+      <div class="tokens">
+        <div class="tokens-title">统一规则</div>
+        <div class="token-row"><span>色彩</span><div class="swatches"><i class="swatch" style="--swatch:#07111f"></i><i class="swatch" style="--swatch:#22d3ee"></i><i class="swatch" style="--swatch:#5eead4"></i><i class="swatch" style="--swatch:#fb7185"></i></div></div>
+        <div class="token-row"><span>字体</span><div>加粗中文标题 + 等宽数字，信息像仪表盘一样稳定。</div></div>
+        <div class="token-row"><span>母题</span><div>“值班指挥墙”：少装饰、多状态、按钮反馈要像控制台。</div></div>
+      </div>
+    </header>
+    <div class="canvas">
+      <div class="left-stack">
+        <article class="mock">
+          <div class="mock-top"><span>控制网页 · 总控视图</span><span class="status-pill"><i class="dot"></i>实时通道正常</span></div>
+          <div class="web-body">
+            <aside class="side">
+              <div class="brand-lockup"><div class="mark">▣</div><div><div class="brand-title">屏控中心</div><div class="brand-caption">Command Wall</div></div></div>
+              <div class="nav-item active">▦ 现场总览</div>
+              <div class="nav-item">◎ 回执队列</div>
+              <div class="nav-item">⚙ 权限诊断</div>
+            </aside>
+            <main class="web-main">
+              <div class="web-head">
+                <div><h2 class="web-title">多台显示屏 · 当前可控 3 台</h2><div class="web-desc">点击命令后使用即时回执覆盖心跳状态，避免按钮“发送中”卡住。</div></div>
+                <div class="button-row"><span class="segmented"><span class="active">休眠控制</span><span>黑幕控制</span></span><span class="btn primary">全部亮屏</span><span class="btn">全部休眠</span></div>
+              </div>
+              <div class="metric-grid">
+                <div class="metric"><div class="label">ONLINE</div><div class="value">06</div><div class="hint">在线设备</div></div>
+                <div class="metric"><div class="label">ON</div><div class="value">04</div><div class="hint">亮屏已验证</div></div>
+                <div class="metric"><div class="label">SLEEP</div><div class="value">02</div><div class="hint">休眠已验证</div></div>
+                <div class="metric"><div class="label">BLACK</div><div class="value">00</div><div class="hint">黑幕遮罩</div></div>
+                <div class="metric"><div class="label">ALERT</div><div class="value">01</div><div class="hint">权限待处理</div></div>
+              </div>
+              <div class="toolbar"><strong>现场设备</strong><div class="button-row"><span class="btn">选中亮屏</span><span class="btn">选中休眠</span><span class="btn">立即刷新</span></div></div>
+              <table><thead><tr><th>设备</th><th>通道</th><th>状态</th><th>回执</th><th>操作</th></tr></thead><tbody>
+                <tr><td><div class="device-name">展示屏01</div><div class="device-id">screen-001</div></td><td>192.168.1.101</td><td><span class="tag ok">ON / verified</span></td><td>TurnOn · success</td><td><span class="btn">休眠</span></td></tr>
+                <tr><td><div class="device-name">Android展示屏01</div><div class="device-id">android-agent-demo01</div></td><td>LAN</td><td><span class="tag sleep">SLEEP / verified</span></td><td>Standby · success</td><td><span class="btn">亮屏</span></td></tr>
+              </tbody></table>
+            </main>
+          </div>
+        </article>
+        <article class="mock">
+          <div class="mock-top"><span>Windows Agent · 本机执行端</span><div class="traffic"><span></span><span></span><span></span></div></div>
+          <div class="agent-body">
+            <div class="agent-form">
+              <div class="form-title">Agent 现场端</div><div class="form-subtitle">不会重复压制现场人工操作，手动唤醒优先。</div>
+              <div class="field-grid"><label>服务器</label><div class="input">http://127.0.0.1:8080</div><label>编号</label><div class="input">screen-02</div><label>名称</label><div class="input">display-screen</div><label>心跳</label><div class="input">30s</div></div>
+              <div class="agent-actions"><span class="btn primary">保存并连接</span><span class="btn">断开</span><span class="btn">安装位置</span><span class="btn">黑幕测试</span><span class="btn">亮屏恢复</span><span class="btn">自启</span></div>
+            </div>
+            <aside class="agent-aside"><div class="status-large">CONNECTED</div><div class="agent-log">15:12:02 COMMAND blackout<br>15:12:05 ACK success verified<br>15:12:18 COMMAND wake<br>15:12:19 ACK success</div></aside>
+          </div>
+        </article>
+      </div>
+      <div class="right-stack">
+        <article class="mock">
+          <div class="mock-top"><span>Win Server Manager</span><div class="traffic"><span></span><span></span><span></span></div></div>
+          <div class="manager-body">
+            <div class="manager-title"><div><strong>控制服务核心</strong><span>DisplayControl Server · Windows Service</span></div><span class="tag ok">ACTIVE</span></div>
+            <div class="mini-card"><div class="mini-label">SERVICE</div><div class="mini-value">RUNNING</div><div class="address-list">DisplayControlCenter</div></div>
+            <div class="mini-card"><div class="mini-label">HEALTH</div><div class="mini-value">OK</div><div class="address-list">API / Web / SignalR</div></div>
+            <div class="mini-card"><div class="mini-label">URL</div><div class="address-list">127.0.0.1:8080<br>192.168.1.100:8080</div><div class="server-actions"><span class="btn primary">打开网页</span><span class="btn">复制 LAN</span></div></div>
+            <div class="mini-card"><div class="mini-label">ACTION</div><div class="server-actions"><span class="btn primary">安装/更新</span><span class="btn">启动</span><span class="btn">停止</span><span class="btn danger">卸载</span></div><div class="log-box">[OK] Firewall rule confirmed<br>[OK] Credentials ready</div></div>
+          </div>
+        </article>
+        <article class="mock">
+          <div class="mock-top"><span>Android Agent</span><span class="status-pill"><i class="dot"></i>ONLINE</span></div>
+          <div class="android-frame">
+            <div class="phone">
+              <div class="phone-head"><div><div class="phone-title">屏控助手</div><div class="phone-small">Android Display Agent</div></div><div class="app-icon">▣</div></div>
+              <div class="phone-section"><h3>当前状态</h3><div class="phone-status-lines">连接：ONLINE<br>设备：Android展示屏01<br>屏幕：亮屏 / 已验证<br>权限：ADB owner 可用</div></div>
+              <div class="phone-section"><h3>连接配置</h3><div class="phone-input">http://192.168.1.100:8080</div><div class="phone-input">android-agent-demo01</div><div class="phone-buttons"><span class="btn primary">保存</span><span class="btn">测试</span></div></div>
+            </div>
+            <div class="android-side"><div class="side-note"><strong>暗色版的优点</strong><br>控制网页如果要长期开在会议一体机上，暗色能降低刺眼感；异常状态在黑底上也更容易被注意。</div><div class="permission-grid"><div class="permission"><b>休眠</b><span>ADB / 设备管理优先</span></div><div class="permission"><b>亮屏</b><span>WakeLock + 解锁恢复</span></div><div class="permission"><b>黑幕</b><span>沉浸遮罩无通知</span></div><div class="permission"><b>回执</b><span>命令完成立即更新</span></div></div></div>
+          </div>
+        </article>
+      </div>
+    </div>
+    <div class="caption-line">预览稿 B：更像中控室，视觉冲击更强，但 WinForms 深色落地成本略高</div>
+  </section>
+
+  <section class="board direction-c" id="direction-c">
+    <header class="board-header">
+      <div>
+        <div class="eyebrow">Direction C · 设备白板</div>
+        <h1>像设备说明牌一样可靠：信息密度高，但不乱</h1>
+        <div class="board-subtitle">偏“工程设备管理”气质：暖白底、表格清晰、边界明确。它不追求炫，追求用户第一次打开就知道下一步点哪里。</div>
+      </div>
+      <div class="tokens">
+        <div class="tokens-title">统一规则</div>
+        <div class="token-row"><span>色彩</span><div class="swatches"><i class="swatch" style="--swatch:#f4f1ea"></i><i class="swatch" style="--swatch:#0f766e"></i><i class="swatch" style="--swatch:#7c4a03"></i><i class="swatch" style="--swatch:#1f2933"></i></div></div>
+        <div class="token-row"><span>字体</span><div>正文稍大、数字等宽、表格留足行高；适合现场人员快速核对。</div></div>
+        <div class="token-row"><span>母题</span><div>“设备白板”：一张值班记录板，清楚、耐用、少花活。</div></div>
+      </div>
+    </header>
+    <div class="canvas">
+      <div class="left-stack">
+        <article class="mock">
+          <div class="mock-top"><span>控制网页 · 设备白板视图</span><span class="status-pill"><i class="dot"></i>6 / 7 在线</span></div>
+          <div class="web-body">
+            <aside class="side">
+              <div class="brand-lockup"><div class="mark">▣</div><div><div class="brand-title">屏控中心</div><div class="brand-caption">Display Control</div></div></div>
+              <div class="nav-item active">01 设备</div>
+              <div class="nav-item">02 日志</div>
+              <div class="nav-item">03 设置</div>
+            </aside>
+            <main class="web-main">
+              <div class="web-head">
+                <div><h2 class="web-title">今日显示屏控制板</h2><div class="web-desc">默认只显示需要判断的信息：在线、真实状态、最后回执、可执行操作。</div></div>
+                <div class="button-row"><span class="segmented"><span class="active">休眠</span><span>黑幕</span></span><span class="btn primary">全部亮屏</span><span class="btn">全部休眠</span></div>
+              </div>
+              <div class="metric-grid">
+                <div class="metric"><div class="label">在线</div><div class="value">3</div><div class="hint">共 4 台</div></div>
+                <div class="metric"><div class="label">亮屏</div><div class="value">4</div><div class="hint">已验证</div></div>
+                <div class="metric"><div class="label">休眠</div><div class="value">2</div><div class="hint">已验证</div></div>
+                <div class="metric"><div class="label">黑幕</div><div class="value">0</div><div class="hint">无遮罩</div></div>
+                <div class="metric"><div class="label">异常</div><div class="value">1</div><div class="hint">权限处理</div></div>
+              </div>
+              <div class="toolbar"><strong>设备管理</strong><div class="button-row"><span class="btn">选中亮屏</span><span class="btn">选中休眠</span><span class="btn">立即刷新</span></div></div>
+              <table><thead><tr><th>设备</th><th>地址</th><th>屏幕状态</th><th>回执说明</th><th>控制</th></tr></thead><tbody>
+                <tr><td><div class="device-name">展示屏01</div><div class="device-id">screen-001</div></td><td>192.168.1.101</td><td><span class="tag ok">亮屏</span></td><td>TurnOn 成功，像素已确认</td><td><span class="btn">休眠</span></td></tr>
+                <tr><td><div class="device-name">Android展示屏01</div><div class="device-id">android-agent-demo01</div></td><td>192.168.1.102</td><td><span class="tag sleep">休眠</span></td><td>设备所有者权限执行成功</td><td><span class="btn">亮屏</span></td></tr>
+              </tbody></table>
+            </main>
+          </div>
+        </article>
+        <article class="mock">
+          <div class="mock-top"><span>Windows Agent · 配置与执行</span><div class="traffic"><span></span><span></span><span></span></div></div>
+          <div class="agent-body">
+            <div class="agent-form"><div class="form-title">显示端 Agent</div><div class="form-subtitle">所有字段完整展示，窗口缩放时按比例舒展。</div><div class="field-grid"><label>服务器地址</label><div class="input">http://127.0.0.1:8080</div><label>设备编号</label><div class="input">screen-02</div><label>设备名称</label><div class="input">display-screen</div><label>心跳秒数</label><div class="input">30</div></div><div class="agent-actions"><span class="btn primary">保存连接</span><span class="btn">断开</span><span class="btn">安装位置</span><span class="btn">黑幕测试</span><span class="btn">解除黑幕</span><span class="btn">开机启动</span></div></div>
+            <aside class="agent-aside"><div class="status-large">已连接</div><div class="agent-log">15:12:02 黑幕：成功<br>15:12:18 亮屏：成功<br>15:12:31 心跳：亮屏已验证</div></aside>
+          </div>
+        </article>
+      </div>
+      <div class="right-stack">
+        <article class="mock">
+          <div class="mock-top"><span>Win Server 管理器</span><div class="traffic"><span></span><span></span><span></span></div></div>
+          <div class="manager-body"><div class="manager-title"><div><strong>显示屏控制服务器</strong><span>Windows 服务管理器</span></div><span class="tag ok">正在运行</span></div><div class="mini-card"><div class="mini-label">服务状态</div><div class="mini-value">Running</div><div class="address-list">Windows 后台服务</div></div><div class="mini-card"><div class="mini-label">健康检查</div><div class="mini-value">Healthy</div><div class="address-list">网页与 API 可用</div></div><div class="mini-card"><div class="mini-label">访问地址</div><div class="address-list">http://127.0.0.1:8080<br>http://192.168.1.100:8080</div><div class="server-actions"><span class="btn primary">打开网页</span><span class="btn">复制地址</span></div></div><div class="mini-card"><div class="mini-label">服务操作</div><div class="server-actions"><span class="btn primary">安装/更新</span><span class="btn">启动</span><span class="btn">停止</span><span class="btn danger">卸载</span></div><div class="log-box">[15:12:10] 服务正常<br>[15:12:11] 初始密码已生成</div></div></div>
+        </article>
+        <article class="mock">
+          <div class="mock-top"><span>Android Agent · 现场配置</span><span class="status-pill"><i class="dot"></i>已连接</span></div>
+          <div class="android-frame"><div class="phone"><div class="phone-head"><div><div class="phone-title">屏控助手</div><div class="phone-small">V1.6 · Android</div></div><div class="app-icon">▣</div></div><div class="phone-section"><h3>当前状态</h3><div class="phone-status-lines">服务：已连接<br>屏幕：亮屏（已验证）<br>权限：系统休眠可用<br>回执：命令完成</div></div><div class="phone-section"><h3>连接配置</h3><div class="phone-input">http://192.168.1.100:8080</div><div class="phone-input">Android展示屏01</div><div class="phone-buttons"><span class="btn primary">保存配置</span><span class="btn">测试连接</span></div></div></div><div class="android-side"><div class="side-note"><strong>工业白板版的优点</strong><br>最克制，适合非技术人员。每个信息块都像设备铭牌，Windows 原生窗口实现也更稳。</div><div class="permission-grid"><div class="permission"><b>权限</b><span>按可用/不可用展示</span></div><div class="permission"><b>安装</b><span>位置与配置讲清楚</span></div><div class="permission"><b>日志</b><span>只保留关键回执</span></div><div class="permission"><b>维护</b><span>低学习成本</span></div></div></div></div>
+        </article>
+      </div>
+    </div>
+    <div class="caption-line">预览稿 C：最朴素耐用，适合现场人员，但视觉高级感不如 A/B</div>
+  </section>
+</body>
+</html>

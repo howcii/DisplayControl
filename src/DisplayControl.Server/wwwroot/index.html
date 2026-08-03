@@ -1,0 +1,2191 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#f8fafc">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%232563eb'/%3E%3Cpath d='M8 9h16v11H8zM13 24h6M16 20v4' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+  <title>屏控中心</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --background: #f5f8fd;
+      --surface: #ffffff;
+      --surface-soft: #eef5ff;
+      --border: #dbe5f0;
+      --border-strong: #cbd9ea;
+      --text: #0f172a;
+      --muted: #64748b;
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --accent: #0369a1;
+      --success: #15803d;
+      --success-soft: #f0fdf4;
+      --warning: #b45309;
+      --warning-soft: #fffbeb;
+      --danger: #dc2626;
+      --danger-hover: #b91c1c;
+      --danger-soft: #fef2f2;
+      --focus: #60a5fa;
+      --shadow: 0 18px 48px rgba(30, 64, 175, .10);
+      --shadow-soft: 0 8px 24px rgba(15, 23, 42, .055);
+      --radius: 18px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      min-width: 320px;
+      background:
+        radial-gradient(circle at 82% 8%, rgba(37, 99, 235, .12), transparent 30%),
+        linear-gradient(180deg, #f8fbff 0%, var(--background) 48%, #edf4fc 100%);
+    }
+
+    body {
+      min-height: 100vh;
+      margin: 0;
+      overflow-x: hidden;
+      background: var(--background);
+      color: var(--text);
+      font-family: "Microsoft YaHei UI", "Segoe UI", system-ui, sans-serif;
+      font-size: 15px;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      -webkit-tap-highlight-color: rgba(37, 99, 235, .12);
+    }
+
+    button,
+    input,
+    textarea {
+      font: inherit;
+    }
+
+    button,
+    [role="tab"] {
+      touch-action: manipulation;
+    }
+
+    button {
+      min-height: 44px;
+      padding: 0 16px;
+      border: 1px solid var(--border-strong);
+      border-radius: 10px;
+      background: var(--surface);
+      color: var(--text);
+      cursor: pointer;
+      font-weight: 650;
+      transition: background-color .18s ease, border-color .18s ease, color .18s ease, box-shadow .18s ease;
+    }
+
+    button:hover:not(:disabled) {
+      border-color: #94a3b8;
+      background: var(--surface-soft);
+    }
+
+    button:active:not(:disabled) {
+      background: #e2e8f0;
+    }
+
+    button:focus-visible,
+    input:focus-visible,
+    textarea:focus-visible,
+    [role="tab"]:focus-visible {
+      outline: 3px solid rgba(96, 165, 250, .48);
+      outline-offset: 2px;
+    }
+
+    button:disabled {
+      cursor: not-allowed;
+      opacity: .48;
+    }
+
+    button.primary {
+      border-color: var(--primary);
+      background: var(--primary);
+      color: #fff;
+    }
+
+    button.primary:hover:not(:disabled) {
+      border-color: var(--primary-hover);
+      background: var(--primary-hover);
+    }
+
+    button.danger {
+      border-color: #fecaca;
+      color: var(--danger);
+    }
+
+    button.danger:hover:not(:disabled) {
+      border-color: #fca5a5;
+      background: var(--danger-soft);
+      color: var(--danger-hover);
+    }
+
+    button.quiet {
+      min-height: 38px;
+      padding-inline: 12px;
+      border-color: transparent;
+      background: transparent;
+      color: var(--muted);
+    }
+
+    button.quiet:hover:not(:disabled) {
+      border-color: var(--border);
+      background: var(--surface-soft);
+      color: var(--text);
+    }
+
+    input,
+    textarea {
+      width: 100%;
+      border: 1px solid var(--border-strong);
+      border-radius: 10px;
+      background: #fff;
+      color: var(--text);
+    }
+
+    input {
+      min-height: 44px;
+      padding: 9px 12px;
+    }
+
+    textarea {
+      min-height: 96px;
+      resize: vertical;
+      padding: 10px 12px;
+    }
+
+    input::placeholder,
+    textarea::placeholder {
+      color: #94a3b8;
+    }
+
+    label {
+      display: grid;
+      gap: 7px;
+      color: #334155;
+      font-size: 14px;
+      font-weight: 650;
+    }
+
+    .skip-link {
+      position: fixed;
+      z-index: 1000;
+      top: 8px;
+      left: 8px;
+      padding: 8px 12px;
+      border-radius: 8px;
+      background: var(--text);
+      color: #fff;
+      transform: translateY(-150%);
+    }
+
+    .skip-link:focus {
+      transform: translateY(0);
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .app-header {
+      position: sticky;
+      z-index: 20;
+      top: 0;
+      min-height: 78px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(255, 255, 255, .96);
+      backdrop-filter: blur(10px);
+    }
+
+    .header-inner {
+      width: min(1680px, 100%);
+      min-height: 78px;
+      margin: 0 auto;
+      padding: 12px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+    }
+
+    .brand {
+      min-width: 0;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-mark {
+      width: 46px;
+      height: 46px;
+      flex: 0 0 auto;
+      display: grid;
+      place-items: center;
+      border-radius: 15px;
+      background: var(--primary);
+      color: #fff;
+      box-shadow: 0 6px 16px rgba(37, 99, 235, .22);
+    }
+
+    .brand-mark svg,
+    .button-icon {
+      width: 22px;
+      height: 22px;
+      fill: none;
+      stroke: currentColor;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      stroke-width: 1.8;
+    }
+
+    .brand-name {
+      margin: 0;
+      color: var(--text);
+      font-size: 19px;
+      font-weight: 800;
+      line-height: 1.35;
+    }
+
+    .brand-subtitle {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.35;
+    }
+
+    .header-actions,
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .connection-chip,
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      min-height: 30px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: var(--surface-soft);
+      color: #475569;
+      font-size: 12px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .connection-chip {
+      background: var(--success-soft);
+      color: var(--success);
+    }
+
+    .connection-chip::before,
+    .status-pill::before {
+      width: 7px;
+      height: 7px;
+      flex: 0 0 auto;
+      border-radius: 50%;
+      background: currentColor;
+      content: "";
+    }
+
+    .status-pill.online,
+    .status-pill.verified,
+    .status-pill.on {
+      background: var(--success-soft);
+      color: var(--success);
+    }
+
+    .status-pill.offline,
+    .status-pill.error {
+      background: var(--danger-soft);
+      color: var(--danger);
+    }
+
+    .status-pill.standby {
+      background: #eff6ff;
+      color: var(--primary);
+    }
+
+    .status-pill.blackout {
+      background: #f1f5f9;
+      color: #334155;
+    }
+
+    .status-pill.unknown {
+      background: var(--warning-soft);
+      color: var(--warning);
+    }
+
+    .page {
+      width: min(1680px, 100%);
+      margin: 0 auto;
+      padding: 32px 32px 48px;
+    }
+
+    .auth-page {
+      width: min(960px, 100%);
+      min-height: calc(100vh - 72px);
+      margin: 0 auto;
+      padding: 48px 24px;
+      display: grid;
+      place-items: center;
+    }
+
+    .auth-layout {
+      width: 100%;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(340px, 420px);
+      gap: 48px;
+      align-items: center;
+    }
+
+    .auth-intro h1 {
+      max-width: 12ch;
+      margin: 12px 0 16px;
+      color: var(--text);
+      font-size: clamp(32px, 5vw, 48px);
+      line-height: 1.2;
+      letter-spacing: -.035em;
+      text-wrap: balance;
+    }
+
+    .eyebrow {
+      color: var(--primary);
+      font-size: 13px;
+      font-weight: 750;
+      letter-spacing: .06em;
+    }
+
+    .card {
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--surface);
+      box-shadow: var(--shadow);
+    }
+
+    .auth-card {
+      padding: 28px;
+    }
+
+    .auth-card h2 {
+      margin: 0 0 4px;
+      font-size: 22px;
+      line-height: 1.4;
+    }
+
+    .auth-card > p {
+      margin: 0 0 24px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .auth-card > h2 + .form-stack {
+      margin-top: 20px;
+    }
+
+    .form-stack {
+      display: grid;
+      gap: 16px;
+    }
+
+    .captcha-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 164px;
+      gap: 10px;
+      align-items: end;
+    }
+
+    .captcha-box {
+      height: 54px;
+      padding: 0;
+      overflow: hidden;
+      border: 1px solid var(--border-strong);
+      border-radius: 10px;
+      background: var(--background);
+      cursor: pointer;
+    }
+
+    .captcha-box img {
+      width: 100%;
+      height: 100%;
+      display: block;
+      object-fit: cover;
+    }
+
+    .form-error {
+      min-height: 24px;
+      color: var(--danger);
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .form-success {
+      min-height: 24px;
+      color: var(--success);
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .form-hint {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 400;
+    }
+
+    .form-hint span:last-child {
+      color: var(--primary);
+    }
+
+    .session-notice {
+      position: fixed;
+      z-index: 110;
+      right: 24px;
+      bottom: 24px;
+      width: min(430px, calc(100vw - 48px));
+      padding: 14px 16px;
+      display: grid;
+      grid-template-columns: 34px minmax(0, 1fr) auto;
+      gap: 12px;
+      align-items: center;
+      border: 1px solid #fecaca;
+      border-radius: 14px;
+      background: var(--danger-soft);
+      color: #7f1d1d;
+      box-shadow: var(--shadow);
+    }
+
+    .session-notice-icon {
+      width: 34px;
+      height: 34px;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      background: #fee2e2;
+      color: var(--danger);
+      font-weight: 900;
+    }
+
+    .session-notice strong {
+      display: block;
+      color: #991b1b;
+      font-size: 14px;
+    }
+
+    .session-notice p {
+      margin: 1px 0 0;
+      color: #7f1d1d;
+      font-size: 12px;
+    }
+
+    .session-notice button {
+      min-height: 36px;
+      padding-inline: 11px;
+      border-color: #fca5a5;
+      background: #fff;
+      color: #991b1b;
+    }
+
+    .wide {
+      width: 100%;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 24px;
+      align-items: end;
+      margin-bottom: 20px;
+      padding: 28px 30px;
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      background: rgba(255, 255, 255, .86);
+      box-shadow: var(--shadow-soft);
+    }
+
+    .hero h1 {
+      margin: 8px 0 4px;
+      font-size: clamp(28px, 4vw, 40px);
+      line-height: 1.25;
+      letter-spacing: -.035em;
+      text-wrap: balance;
+    }
+
+    .hero-control {
+      display: grid;
+      justify-items: end;
+      gap: 12px;
+    }
+
+    .mode-switch {
+      display: inline-flex;
+      padding: 4px;
+      border-radius: 11px;
+      background: #e8eef5;
+    }
+
+    .mode-switch button {
+      min-height: 38px;
+      border: 0;
+      background: transparent;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .mode-switch button[aria-pressed="true"] {
+      background: #fff;
+      color: var(--primary);
+      box-shadow: 0 2px 8px rgba(15, 23, 42, .08);
+    }
+
+    .summary-grid {
+      margin-bottom: 24px;
+      display: grid;
+      grid-template-columns: repeat(6, minmax(150px, 1fr));
+      gap: 14px;
+    }
+
+    .summary-card {
+      min-height: 110px;
+      padding: 18px;
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      background: var(--surface);
+      box-shadow: var(--shadow-soft);
+    }
+
+    .summary-label {
+      margin-bottom: 8px;
+      color: var(--muted);
+      font-size: 14px;
+      font-weight: 650;
+    }
+
+    .summary-value {
+      color: var(--text);
+      font-size: 32px;
+      font-weight: 750;
+      font-variant-numeric: tabular-nums;
+      line-height: 1.2;
+    }
+
+    .summary-help {
+      margin-top: 10px;
+      color: #94a3b8;
+      font-size: 12px;
+    }
+
+    .workspace-card {
+      overflow: hidden;
+      border-radius: 22px;
+    }
+
+    .tabs {
+      min-height: 64px;
+      padding: 0 24px;
+      display: flex;
+      align-items: stretch;
+      gap: 24px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .tab {
+      position: relative;
+      min-height: 64px;
+      padding: 0 4px;
+      border: 0;
+      border-radius: 0;
+      background: transparent;
+      color: var(--muted);
+    }
+
+    .tab:hover:not(:disabled) {
+      border-color: transparent;
+      background: transparent;
+      color: var(--text);
+    }
+
+    .tab[aria-selected="true"] {
+      color: var(--primary);
+    }
+
+    .tab[aria-selected="true"]::after {
+      position: absolute;
+      right: 0;
+      bottom: -1px;
+      left: 0;
+      height: 3px;
+      border-radius: 3px 3px 0 0;
+      background: var(--primary);
+      content: "";
+    }
+
+    .refresh-note {
+      margin-left: auto;
+      align-self: center;
+      color: #94a3b8;
+      font-size: 12px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .panel-toolbar {
+      min-height: 80px;
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .selection-text {
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .selection-text strong {
+      color: var(--text);
+    }
+
+    .select-all-control {
+      min-height: 44px;
+      padding: 0 8px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .table-wrap {
+      width: 100%;
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      min-width: 1160px;
+      border-collapse: collapse;
+      table-layout: auto;
+    }
+
+    th,
+    td {
+      padding: 15px 16px;
+      border-bottom: 1px solid var(--border);
+      text-align: left;
+      vertical-align: middle;
+      overflow-wrap: anywhere;
+    }
+
+    th {
+      background: #f3f7fb;
+      color: #475569;
+      font-size: 13px;
+      font-weight: 750;
+      letter-spacing: .02em;
+    }
+
+    td {
+      color: #334155;
+      font-size: 14px;
+    }
+
+    tbody tr:last-child td {
+      border-bottom: 0;
+    }
+
+    tbody tr:hover {
+      background: #fbfdff;
+    }
+
+    .checkbox-cell {
+      width: 54px;
+      text-align: center;
+    }
+
+    input[type="checkbox"] {
+      width: 20px;
+      min-height: 20px;
+      accent-color: var(--primary);
+      cursor: pointer;
+    }
+
+    .device-cell {
+      width: 220px;
+    }
+
+    .device-name {
+      color: var(--text);
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .device-id,
+    .cell-subtext {
+      margin-top: 3px;
+      color: #94a3b8;
+      font-size: 11px;
+      line-height: 1.45;
+    }
+
+    .mono-number {
+      font-variant-numeric: tabular-nums;
+    }
+
+    .device-actions {
+      min-width: 0;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      gap: 6px;
+    }
+
+    .device-actions button {
+      min-height: 38px;
+      padding: 0 10px;
+      font-size: 12px;
+    }
+
+    .empty-state {
+      padding: 64px 24px;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    .empty-state strong {
+      display: block;
+      margin-bottom: 4px;
+      color: var(--text);
+      font-size: 16px;
+    }
+
+    .inline-message {
+      min-height: 24px;
+      padding: 10px 24px 14px;
+      color: var(--danger);
+      font-size: 13px;
+    }
+
+    dialog {
+      width: min(480px, calc(100vw - 32px));
+      padding: 0;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--surface);
+      color: var(--text);
+      box-shadow: 0 24px 64px rgba(15, 23, 42, .24);
+    }
+
+    dialog::backdrop {
+      background: rgba(15, 23, 42, .48);
+      backdrop-filter: blur(2px);
+    }
+
+    .dialog-header,
+    .dialog-body,
+    .dialog-footer {
+      padding: 20px 24px;
+    }
+
+    .dialog-header {
+      border-bottom: 1px solid var(--border);
+    }
+
+    .dialog-header h2 {
+      margin: 0;
+      font-size: 19px;
+    }
+
+    .dialog-body {
+      display: grid;
+      gap: 16px;
+    }
+
+    .dialog-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      border-top: 1px solid var(--border);
+      background: var(--background);
+    }
+
+    .toast {
+      position: fixed;
+      z-index: 100;
+      right: 24px;
+      bottom: 24px;
+      max-width: min(420px, calc(100vw - 48px));
+      padding: 13px 16px;
+      border: 1px solid #bbf7d0;
+      border-radius: 10px;
+      background: var(--success-soft);
+      color: var(--success);
+      box-shadow: var(--shadow);
+      font-size: 14px;
+      font-weight: 650;
+    }
+
+    .toast.error {
+      border-color: #fecaca;
+      background: var(--danger-soft);
+      color: var(--danger);
+    }
+
+    @media (max-width: 1180px) {
+      .summary-grid {
+        grid-template-columns: repeat(3, minmax(150px, 1fr));
+      }
+    }
+
+    @media (max-width: 820px) {
+      .header-inner {
+        padding-inline: 16px;
+      }
+
+      .brand-subtitle,
+      .connection-chip,
+      #sessionText {
+        display: none;
+      }
+
+      .page {
+        padding: 24px 16px 40px;
+      }
+
+      .auth-layout,
+      .hero {
+        grid-template-columns: 1fr;
+      }
+
+      .auth-intro {
+        display: none;
+      }
+
+      .hero-control {
+        justify-items: stretch;
+      }
+
+      .mode-switch,
+      .hero-control .actions {
+        width: 100%;
+      }
+
+      .mode-switch button,
+      .hero-control .actions button {
+        flex: 1;
+      }
+
+      .summary-grid {
+        grid-template-columns: repeat(2, minmax(140px, 1fr));
+        gap: 12px;
+      }
+
+      .summary-card {
+        min-height: 112px;
+        padding: 16px;
+      }
+
+      .tabs,
+      .panel-toolbar {
+        padding-inline: 16px;
+      }
+
+      .panel-toolbar {
+        align-items: stretch;
+        flex-direction: column;
+      }
+
+      .panel-toolbar .actions button {
+        flex: 1;
+      }
+
+      .table-wrap {
+        overflow: visible;
+      }
+
+      table,
+      thead,
+      tbody,
+      tr,
+      th,
+      td {
+        display: block;
+        width: 100% !important;
+        min-width: 0;
+      }
+
+      thead {
+        position: absolute;
+        width: 1px !important;
+        height: 1px;
+        overflow: hidden;
+        clip: rect(0 0 0 0);
+      }
+
+      tbody {
+        padding: 12px;
+      }
+
+      tbody tr {
+        margin-bottom: 12px;
+        padding: 14px;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        background: #fff;
+      }
+
+      tbody tr:last-child {
+        margin-bottom: 0;
+      }
+
+      td {
+        min-height: 36px;
+        padding: 7px 0;
+        display: grid;
+        grid-template-columns: 112px minmax(0, 1fr);
+        gap: 12px;
+        border: 0;
+      }
+
+      td::before {
+        color: var(--muted);
+        content: attr(data-label);
+        font-size: 12px;
+        font-weight: 650;
+      }
+
+      .device-actions {
+        min-width: 0;
+        justify-content: flex-start;
+      }
+    }
+
+    @media (max-width: 520px) {
+      .header-actions .quiet {
+        padding-inline: 8px;
+      }
+
+      .auth-page {
+        padding: 24px 16px;
+      }
+
+      .auth-card {
+        padding: 22px 18px;
+      }
+
+      .session-notice {
+        right: 16px;
+        bottom: 16px;
+        width: calc(100vw - 32px);
+        grid-template-columns: 34px minmax(0, 1fr);
+      }
+
+      .session-notice button {
+        grid-column: 2;
+        justify-self: start;
+      }
+
+      .captcha-row {
+        grid-template-columns: 1fr;
+      }
+
+      .captcha-box {
+        width: 164px;
+      }
+
+      .summary-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .refresh-note {
+        display: none;
+      }
+
+      td {
+        grid-template-columns: 88px minmax(0, 1fr);
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        scroll-behavior: auto !important;
+        transition-duration: .01ms !important;
+        animation-duration: .01ms !important;
+        animation-iteration-count: 1 !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#mainContent">跳到主要内容</a>
+
+  <header class="app-header">
+    <div class="header-inner">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24">
+            <rect x="3" y="4" width="18" height="13" rx="2"></rect>
+            <path d="M8 21h8M12 17v4"></path>
+          </svg>
+        </div>
+        <div>
+          <div class="brand-name">屏控中心</div>
+          <div class="brand-subtitle">企业展示屏集中控制系统</div>
+        </div>
+      </div>
+      <div class="header-actions">
+        <span class="connection-chip">HTTP 在线</span>
+        <span id="sessionText">未登录</span>
+        <button id="openPasswordButton" class="quiet hidden" type="button">修改密码</button>
+        <button id="logoutButton" class="quiet hidden" type="button">退出</button>
+      </div>
+    </div>
+  </header>
+
+  <main id="mainContent">
+    <section id="loginView" class="auth-page">
+      <div class="auth-layout">
+        <div class="auth-intro">
+          <div class="eyebrow">安全访问</div>
+          <h1>集中管理公司的显示设备</h1>
+        </div>
+        <form id="loginForm" class="card auth-card" novalidate>
+          <h2>管理员登录</h2>
+          <div class="form-stack">
+            <label for="username">用户名
+              <input id="username" name="username" autocomplete="username" spellcheck="false" value="admin" required>
+            </label>
+            <label for="password">密码
+              <input id="password" name="password" type="password" autocomplete="current-password" required>
+            </label>
+            <label for="captchaCode">验证码
+              <div class="captcha-row">
+                <input id="captchaCode" name="captchaCode" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="5" placeholder="输入图中的字母或数字…" required>
+                <button id="captchaButton" class="captcha-box" type="button" aria-label="更换验证码">
+                  <img id="captchaImage" alt="图形验证码" width="164" height="54">
+                </button>
+              </div>
+              <span class="form-hint"><span>不区分大小写</span><span>点击图片更换</span></span>
+            </label>
+            <div id="loginError" class="form-error" role="alert"></div>
+            <button id="loginButton" class="primary wide" type="submit">登录屏控中心</button>
+          </div>
+        </form>
+      </div>
+      <aside id="sessionNotice" class="session-notice hidden" role="alert" aria-live="assertive">
+        <span class="session-notice-icon" aria-hidden="true">!</span>
+        <div>
+          <strong>此账号已在另一台设备登录</strong>
+          <p>本设备已安全退出，请确认后重新登录。</p>
+        </div>
+        <button id="sessionNoticeButton" type="button">重新登录</button>
+      </aside>
+    </section>
+
+    <section id="passwordView" class="auth-page hidden">
+      <form id="passwordForm" class="card auth-card" novalidate>
+        <h2>修改管理员密码</h2>
+        <p id="passwordHelp">首次登录需要先修改默认密码。</p>
+        <div class="form-stack">
+          <input name="username" type="text" autocomplete="username" value="admin" hidden>
+          <label for="currentPassword">当前密码
+            <input id="currentPassword" name="currentPassword" type="password" autocomplete="current-password" required>
+          </label>
+          <label for="newPassword">新密码
+            <input id="newPassword" name="newPassword" type="password" autocomplete="new-password" minlength="8" required>
+          </label>
+          <label for="confirmPassword">确认新密码
+            <input id="confirmPassword" name="confirmPassword" type="password" autocomplete="new-password" minlength="8" required>
+          </label>
+          <div id="passwordError" class="form-error" role="alert"></div>
+          <div id="passwordSuccess" class="form-success" aria-live="polite"></div>
+          <button id="changePasswordButton" class="primary wide" type="submit">保存新密码</button>
+          <button id="cancelPasswordButton" type="button">返回控制台</button>
+        </div>
+      </form>
+    </section>
+
+    <section id="appView" class="page hidden">
+      <div class="hero">
+        <div>
+          <div class="eyebrow">设备概览</div>
+          <h1>展示屏实时状态</h1>
+        </div>
+        <div class="hero-control">
+          <div class="mode-switch" aria-label="息屏方式">
+            <button type="button" data-mode="standby" aria-pressed="true">显示器休眠</button>
+            <button type="button" data-mode="blackout" aria-pressed="false">黑幕遮罩</button>
+          </div>
+          <div class="actions">
+            <button id="allOnButton" class="primary" type="button">全部亮屏</button>
+            <button id="allOffButton" type="button">全部休眠</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="summary-grid" aria-label="设备状态统计">
+        <article class="summary-card">
+          <div class="summary-label">在线设备</div>
+          <div id="onlineCount" class="summary-value">0</div>
+          <div id="totalCount" class="summary-help">共 0 台</div>
+        </article>
+        <article class="summary-card">
+          <div class="summary-label">离线设备</div>
+          <div id="offlineCount" class="summary-value">0</div>
+        </article>
+        <article class="summary-card">
+          <div class="summary-label">亮屏</div>
+          <div id="onCount" class="summary-value">0</div>
+        </article>
+        <article class="summary-card">
+          <div class="summary-label">休眠</div>
+          <div id="standbyCount" class="summary-value">0</div>
+        </article>
+        <article class="summary-card">
+          <div class="summary-label">黑幕遮罩</div>
+          <div id="blackoutCount" class="summary-value">0</div>
+        </article>
+        <article class="summary-card">
+          <div class="summary-label">状态未知</div>
+          <div id="unknownCount" class="summary-value">0</div>
+        </article>
+      </div>
+
+      <section class="card workspace-card">
+        <div class="tabs" role="tablist" aria-label="控制台内容">
+          <button id="devicesTab" class="tab" role="tab" type="button" aria-selected="true" aria-controls="devicesPanel" data-tab="devices">设备管理</button>
+          <button id="logsTab" class="tab" role="tab" type="button" aria-selected="false" aria-controls="logsPanel" data-tab="logs">操作日志</button>
+          <span id="refreshNote" class="refresh-note">30 秒心跳刷新</span>
+        </div>
+
+        <div id="devicesPanel" role="tabpanel" aria-labelledby="devicesTab">
+          <div class="panel-toolbar">
+            <div id="selectionText" class="selection-text">已选择 <strong>0</strong> 台设备，其中 <strong>0</strong> 台在线可控制</div>
+            <div class="actions">
+              <label class="select-all-control" for="selectAll">
+                <input id="selectAll" name="selectAll" type="checkbox" aria-label="选择全部设备">
+                全选
+              </label>
+              <button id="selectedOnButton" type="button" disabled>选中亮屏</button>
+              <button id="selectedOffButton" type="button" disabled>选中休眠</button>
+              <button id="refreshButton" type="button">立即刷新</button>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table aria-label="显示设备">
+              <thead>
+                <tr>
+                  <th class="checkbox-cell">选择</th>
+                  <th class="device-cell">设备</th>
+                  <th>备注</th>
+                  <th>IP 地址</th>
+                  <th>连接状态</th>
+                  <th>真实屏幕状态</th>
+                  <th>最后心跳</th>
+                  <th style="text-align:right">控制</th>
+                </tr>
+              </thead>
+              <tbody id="screenRows"></tbody>
+            </table>
+            <div id="deviceEmpty" class="empty-state hidden">
+              <strong>尚无显示设备</strong>
+            </div>
+          </div>
+          <div id="appError" class="inline-message" role="alert"></div>
+        </div>
+
+        <div id="logsPanel" class="hidden" role="tabpanel" aria-labelledby="logsTab">
+          <div class="panel-toolbar">
+            <div class="selection-text">最近 200 条服务器操作记录</div>
+            <button id="refreshLogsButton" type="button">刷新日志</button>
+          </div>
+          <div class="table-wrap">
+            <table aria-label="操作日志">
+              <thead>
+                <tr>
+                  <th style="width:190px">时间</th>
+                  <th>设备</th>
+                  <th>操作</th>
+                  <th style="width:100px">结果</th>
+                  <th>说明</th>
+                </tr>
+              </thead>
+              <tbody id="logRows"></tbody>
+            </table>
+            <div id="logEmpty" class="empty-state hidden">
+              <strong>暂无操作日志</strong>
+            </div>
+          </div>
+          <div id="logError" class="inline-message" role="alert"></div>
+        </div>
+      </section>
+    </section>
+  </main>
+
+  <dialog id="editDialog" aria-labelledby="editDialogTitle">
+    <form id="editForm">
+      <div class="dialog-header">
+        <h2 id="editDialogTitle">编辑设备信息</h2>
+      </div>
+      <div class="dialog-body">
+        <input id="editDeviceId" name="deviceId" type="hidden" autocomplete="off">
+        <label for="editDeviceName">设备名称
+          <input id="editDeviceName" name="name" autocomplete="off" maxlength="80" required>
+        </label>
+        <label for="editDeviceNote">备注
+          <textarea id="editDeviceNote" name="note" autocomplete="off" maxlength="200" placeholder="例如：会议室、展厅或设备负责人…"></textarea>
+        </label>
+        <div id="editError" class="form-error" role="alert"></div>
+      </div>
+      <div class="dialog-footer">
+        <button id="cancelEditButton" type="button">取消</button>
+        <button id="saveEditButton" class="primary" type="submit">保存设备信息</button>
+      </div>
+    </form>
+  </dialog>
+
+  <div id="toast" class="toast hidden" aria-live="polite"></div>
+
+  <script>
+    "use strict";
+
+    const state = {
+      screens: [],
+      logs: [],
+      selected: new Set(),
+      mode: "standby",
+      csrfToken: null,
+      username: null,
+      captchaId: null,
+      activeTab: new URLSearchParams(location.search).get("tab") === "logs" ? "logs" : "devices",
+      refreshTimer: null,
+      countdownTimer: null,
+      sessionTimer: null,
+      countdown: 30,
+      refreshing: false,
+      commandBusy: false,
+      authTransitioning: false,
+      toastTimer: null
+    };
+
+    const $ = id => document.getElementById(id);
+    const dateFormatter = new Intl.DateTimeFormat("zh-CN", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: false
+    });
+
+    const statusLabels = {
+      on: "亮屏",
+      dimmed: "变暗",
+      standby: "待机",
+      blackout: "黑幕",
+      unknown: "未知"
+    };
+
+    const commandLabels = {
+      screen_on: "亮屏",
+      screen_off_standby: "休眠",
+      screen_off_blackout: "黑幕",
+      delete_device: "删除设备"
+    };
+
+    class ApiError extends Error {
+      constructor(message, status, reason = null) {
+        super(message);
+        this.status = status;
+        this.reason = reason;
+      }
+    }
+
+    async function api(path, options = {}) {
+      const { timeoutMs = 20000, ...fetchOptions } = options;
+      const method = (fetchOptions.method || "GET").toUpperCase();
+      const headers = new Headers(fetchOptions.headers || {});
+      if (options.body && !headers.has("content-type")) {
+        headers.set("content-type", "application/json");
+      }
+      if (state.csrfToken && ["POST", "PATCH", "DELETE"].includes(method)) {
+        headers.set("X-CSRF-Token", state.csrfToken);
+      }
+
+      let response;
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+      try {
+        response = await fetch(path, {
+          ...fetchOptions,
+          method,
+          headers,
+          signal: fetchOptions.signal || controller.signal,
+          credentials: "same-origin"
+        });
+      } catch (error) {
+        if (error?.name === "AbortError") {
+          throw new ApiError("请求超时，请确认 Agent 在线并稍后重试。", 0);
+        }
+        throw new ApiError("无法连接服务器，请确认服务已启动后重试。", 0);
+      } finally {
+        clearTimeout(timeoutId);
+      }
+
+      const authReason = response.headers.get("X-DisplayControl-Auth-Reason");
+      if (!response.ok) {
+        let message = "";
+        try {
+          const contentType = response.headers.get("content-type") || "";
+          if (contentType.includes("json")) {
+            const body = await response.json();
+            message = body.detail || body.title || body.message || "";
+          } else {
+            message = await response.text();
+          }
+        } catch {
+          message = "";
+        }
+
+        if (response.status === 401) {
+          message = authReason === "session-replaced"
+            ? "此账号已在另一台设备登录，本设备已安全退出。"
+            : "登录状态已失效，请重新登录。";
+        } else if (response.status === 403) {
+          message = "安全校验失败，请刷新页面后重试。";
+        } else if (!message) {
+          message = `操作失败（HTTP ${response.status}），请重试。`;
+        }
+        throw new ApiError(message, response.status, authReason);
+      }
+
+      if (response.status === 204) {
+        return null;
+      }
+      const responseContentType = response.headers.get("content-type") || "";
+      if (!responseContentType.includes("json")) {
+        throw new ApiError("服务器返回的不是新版 API，请确认 8080 已安装/启动当前服务。", response.status);
+      }
+      const payload = await response.json();
+      if (authReason && payload && typeof payload === "object" && !Array.isArray(payload)) {
+        payload.authReason = authReason;
+      }
+      return payload;
+    }
+
+    function setView(view) {
+      $("loginView").classList.toggle("hidden", view !== "login");
+      $("passwordView").classList.toggle("hidden", view !== "password");
+      $("appView").classList.toggle("hidden", view !== "app");
+      $("logoutButton").classList.toggle("hidden", view === "login");
+      $("openPasswordButton").classList.toggle("hidden", view !== "app");
+      if (view !== "app") {
+        stopAutoRefresh();
+      }
+    }
+
+    function setSession(session) {
+      state.csrfToken = session?.csrfToken || null;
+      state.username = session?.username || null;
+      $("sessionText").textContent = state.username || "未登录";
+    }
+
+    function setSessionNotice(reason = null) {
+      const replaced = reason === "session-replaced";
+      $("sessionNotice").classList.toggle("hidden", !replaced);
+      if (replaced) {
+        $("loginError").textContent = "";
+      }
+    }
+
+    async function handleAuthenticationError(error) {
+      if (error?.status !== 401) {
+        return false;
+      }
+      if (state.authTransitioning) {
+        return true;
+      }
+
+      state.authTransitioning = true;
+      try {
+        state.selected.clear();
+        state.screens = [];
+        setSession(null);
+        setView("login");
+        setSessionNotice(error.reason);
+        if (error.reason !== "session-replaced") {
+          $("loginError").textContent = error.message;
+        }
+        await loadCaptcha({ clearError: false });
+      } finally {
+        state.authTransitioning = false;
+      }
+      return true;
+    }
+
+    async function loadSession() {
+      const session = await api("/api/auth/session");
+      setSession(session);
+      if (!session.authenticated) {
+        setView("login");
+        setSessionNotice(session.authReason);
+        await loadCaptcha();
+        return;
+      }
+      setSessionNotice();
+      if (session.mustChangePassword) {
+        $("passwordHelp").textContent = "首次登录需要先修改默认密码。";
+        $("cancelPasswordButton").classList.add("hidden");
+        setView("password");
+        return;
+      }
+
+      $("cancelPasswordButton").classList.remove("hidden");
+      setView("app");
+      setTab(state.activeTab);
+      await refreshScreens();
+      startAutoRefresh();
+    }
+
+    async function loadCaptcha(options = {}) {
+      const clearError = options.clearError !== false;
+      const previousError = $("loginError").textContent;
+      if (clearError) {
+        $("loginError").textContent = "";
+      }
+      try {
+        const captcha = await api("/api/auth/captcha");
+        state.captchaId = captcha.id;
+        $("captchaImage").src = captcha.imageUrl;
+        $("captchaCode").value = "";
+      } catch (error) {
+        state.captchaId = null;
+        $("loginError").textContent = clearError ? error.message : (previousError || error.message);
+      }
+    }
+
+    async function withBusy(button, busyText, action) {
+      if (button.disabled || button.getAttribute("aria-busy") === "true") {
+        return;
+      }
+      const original = button.textContent;
+      button.disabled = true;
+      button.setAttribute("aria-busy", "true");
+      button.textContent = busyText;
+      try {
+        return await action();
+      } finally {
+        button.textContent = original;
+        button.removeAttribute("aria-busy");
+        button.disabled = false;
+        updateSelection();
+      }
+    }
+
+    async function login(event) {
+      event.preventDefault();
+      $("loginError").textContent = "";
+      const username = $("username").value.trim();
+      const password = $("password").value;
+      const captchaCode = $("captchaCode").value.trim().replace(/\s+/g, "").toUpperCase();
+      if (!username) {
+        $("loginError").textContent = "请输入用户名。";
+        $("username").focus();
+        return;
+      }
+      if (!password) {
+        $("loginError").textContent = "请输入密码。";
+        $("password").focus();
+        return;
+      }
+      if (captchaCode.length !== 5 || !/^[A-Z0-9]{5}$/.test(captchaCode)) {
+        $("loginError").textContent = "请输入图中 5 位字母或数字验证码。";
+        $("captchaCode").focus();
+        return;
+      }
+      if (!state.captchaId) {
+        $("loginError").textContent = "验证码尚未加载，请点击验证码重试。";
+        return;
+      }
+
+      await withBusy($("loginButton"), "正在登录…", async () => {
+        try {
+          const session = await api("/api/auth/login", {
+            method: "POST",
+            body: JSON.stringify({
+              username,
+              password,
+              captchaId: state.captchaId,
+              captchaCode
+            })
+          });
+          setSession(session);
+          setSessionNotice();
+          $("password").value = "";
+          if (session.mustChangePassword) {
+            $("passwordHelp").textContent = "首次登录需要先修改默认密码。";
+            $("cancelPasswordButton").classList.add("hidden");
+            setView("password");
+          } else {
+            setView("app");
+            await refreshScreens();
+            startAutoRefresh();
+          }
+        } catch (error) {
+          if (await handleAuthenticationError(error)) {
+            return;
+          }
+          $("loginError").textContent = error.status === 401
+            ? "用户名、密码或验证码不正确，请重新输入。"
+            : error.message;
+          await loadCaptcha({ clearError: false });
+          $("captchaCode").focus();
+        }
+      });
+    }
+
+    async function changePassword(event) {
+      event.preventDefault();
+      $("passwordError").textContent = "";
+      $("passwordSuccess").textContent = "";
+      if (!$("passwordForm").reportValidity()) {
+        return;
+      }
+      if ($("newPassword").value !== $("confirmPassword").value) {
+        $("passwordError").textContent = "两次输入的新密码不一致，请重新输入。";
+        $("confirmPassword").focus();
+        return;
+      }
+
+      await withBusy($("changePasswordButton"), "正在保存…", async () => {
+        try {
+          await api("/api/auth/change-password", {
+            method: "POST",
+            body: JSON.stringify({
+              currentPassword: $("currentPassword").value,
+              newPassword: $("newPassword").value
+            })
+          });
+          setSession(null);
+          $("passwordForm").reset();
+          $("passwordSuccess").textContent = "密码已修改，请使用新密码重新登录。";
+          setTimeout(async () => {
+            setView("login");
+            await loadCaptcha();
+            $("password").focus();
+          }, 800);
+        } catch (error) {
+          if (!await handleAuthenticationError(error)) {
+            $("passwordError").textContent = error.message;
+          }
+        }
+      });
+    }
+
+    async function logout() {
+      await withBusy($("logoutButton"), "退出中…", async () => {
+        try {
+          await api("/api/auth/logout", { method: "POST" });
+        } catch {
+          // Even if the session already expired, return to a clean login view.
+        }
+        state.selected.clear();
+        state.screens = [];
+        setSession(null);
+        setSessionNotice();
+        $("password").value = "";
+        setView("login");
+        await loadCaptcha();
+      });
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? "").replace(/[&<>"']/g, char => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        "\"": "&quot;",
+        "'": "&#039;"
+      })[char]);
+    }
+
+    function formatDate(value) {
+      if (!value) {
+        return "尚未上报";
+      }
+      const date = new Date(value);
+      return Number.isNaN(date.getTime()) ? "时间未知" : dateFormatter.format(date);
+    }
+
+    function statusClass(status) {
+      if (status === "dimmed") {
+        return "on";
+      }
+      return ["on", "standby", "blackout"].includes(status) ? status : "unknown";
+    }
+
+    function renderSummary() {
+      const online = state.screens.filter(screen => screen.online).length;
+      const knownStatuses = ["on", "dimmed", "standby", "blackout"];
+      const reported = status => state.screens.filter(screen =>
+        screen.online && screen.screenStatus === status).length;
+      const on = state.screens.filter(screen =>
+        screen.online && ["on", "dimmed"].includes(screen.screenStatus)).length;
+      const knownReported = state.screens.filter(screen =>
+        screen.online && knownStatuses.includes(screen.screenStatus)).length;
+
+      $("onlineCount").textContent = online;
+      $("offlineCount").textContent = state.screens.length - online;
+      $("onCount").textContent = on;
+      $("standbyCount").textContent = reported("standby");
+      $("blackoutCount").textContent = reported("blackout");
+      $("unknownCount").textContent = state.screens.length - knownReported;
+      $("totalCount").textContent = `共 ${state.screens.length} 台`;
+    }
+
+    function normalizeDisplayStatus(screen) {
+      const rawStatus = screen.screenStatus || "unknown";
+      return ["on", "dimmed", "standby", "blackout"].includes(rawStatus)
+        ? rawStatus
+        : "unknown";
+    }
+
+    function statusText(screen, status) {
+      const label = statusLabels[status] || "未知";
+      return label;
+    }
+
+    function statusDetail(screen, status) {
+      const detail = screen.screenStatusDetails?.trim();
+      if (detail) {
+        return detail;
+      }
+      if (screen.screenStatusVerified) {
+        return "Agent 已验证。";
+      }
+      if (status !== "unknown") {
+        return "Agent 已上报，网页已按最近一次命令或心跳刷新。";
+      }
+      return screen.online ? "等待 Agent 上报状态。" : "Agent 离线，状态不可确认。";
+    }
+
+    function renderScreens() {
+      const validIds = new Set(state.screens.map(screen => screen.id));
+      state.selected = new Set([...state.selected].filter(id => validIds.has(id)));
+      renderSummary();
+      $("deviceEmpty").classList.toggle("hidden", state.screens.length !== 0);
+      $("screenRows").innerHTML = state.screens.map(screen => {
+        const checked = state.selected.has(screen.id) ? "checked" : "";
+        const connectionClass = screen.online ? "online" : "offline";
+        const connectionText = screen.online ? "在线" : "离线";
+        const actualStatus = screen.online ? normalizeDisplayStatus(screen) : "unknown";
+        const detail = statusDetail(screen, actualStatus);
+        const note = screen.note?.trim() || "未填写";
+        const version = screen.agentVersion ? `Agent ${screen.agentVersion} · 协议 ${screen.protocolVersion}` : `协议 ${screen.protocolVersion}`;
+
+        return `
+          <tr>
+            <td class="checkbox-cell" data-label="选择">
+              <input type="checkbox" data-select="${escapeHtml(screen.id)}" aria-label="选择 ${escapeHtml(screen.name)}" ${checked}>
+            </td>
+            <td class="device-cell" data-label="设备">
+              <div class="device-name">${escapeHtml(screen.name || "未命名设备")}</div>
+              <div class="device-id">${escapeHtml(screen.id)}</div>
+              <div class="cell-subtext">${escapeHtml(version)}</div>
+            </td>
+            <td data-label="备注">${escapeHtml(note)}</td>
+            <td class="mono-number" data-label="IP 地址">${escapeHtml(screen.ip || "未知")}</td>
+            <td data-label="连接状态">
+              <span class="status-pill ${connectionClass}">${connectionText}</span>
+            </td>
+            <td data-label="真实屏幕状态">
+              <span class="status-pill ${statusClass(actualStatus)}">${escapeHtml(statusText(screen, actualStatus))}</span>
+              <div class="cell-subtext">${escapeHtml(detail)}</div>
+            </td>
+            <td class="mono-number" data-label="最后心跳">${formatDate(screen.lastHeartbeat)}</td>
+            <td data-label="控制">
+              <div class="device-actions">
+                <button type="button" data-action="on" data-device="${escapeHtml(screen.id)}" ${screen.online && !state.commandBusy ? "" : "disabled"}>亮屏</button>
+                <button type="button" data-action="off" data-device="${escapeHtml(screen.id)}" ${screen.online && !state.commandBusy ? "" : "disabled"}>${escapeHtml(offActionLabel())}</button>
+                <button type="button" data-action="edit" data-device="${escapeHtml(screen.id)}">编辑</button>
+                <button class="danger" type="button" data-action="delete" data-device="${escapeHtml(screen.id)}">删除</button>
+              </div>
+            </td>
+          </tr>`;
+      }).join("");
+
+      updateSelection();
+    }
+
+    function updateSelection() {
+      const selectedScreens = state.screens.filter(screen => state.selected.has(screen.id));
+      const onlineScreens = state.screens.filter(screen => screen.online).length;
+      const onlineSelected = selectedScreens.filter(screen => screen.online).length;
+      $("selectAll").checked = state.screens.length > 0 && selectedScreens.length === state.screens.length;
+      $("selectAll").indeterminate = selectedScreens.length > 0 && selectedScreens.length < state.screens.length;
+      $("selectionText").innerHTML = `已选择 <strong>${selectedScreens.length}</strong> 台设备，其中 <strong>${onlineSelected}</strong> 台在线可控制`;
+      $("allOnButton").disabled = state.commandBusy || onlineScreens === 0;
+      $("allOffButton").disabled = state.commandBusy || onlineScreens === 0;
+      $("selectedOnButton").disabled = state.commandBusy || onlineSelected === 0;
+      $("selectedOffButton").disabled = state.commandBusy || onlineSelected === 0;
+      document.querySelectorAll("[data-mode]").forEach(button => {
+        button.disabled = state.commandBusy;
+      });
+      document.querySelectorAll("#screenRows [data-action='on'], #screenRows [data-action='off']").forEach(button => {
+        const device = state.screens.find(screen => screen.id === button.dataset.device);
+        button.disabled = state.commandBusy || !device?.online;
+      });
+    }
+
+    async function refreshScreens(options = {}) {
+      if (state.refreshing) {
+        return;
+      }
+      state.refreshing = true;
+      if (!options.silent) {
+        $("appError").textContent = "";
+      }
+      try {
+        state.screens = await api("/api/screens");
+        renderScreens();
+        resetCountdown();
+      } catch (error) {
+        if (!await handleAuthenticationError(error)) {
+          $("appError").textContent = error.message;
+        }
+      } finally {
+        state.refreshing = false;
+      }
+    }
+
+    function isTerminalExecution(execution) {
+      const stage = String(execution.stage || "").toLowerCase();
+      const command = String(execution.command || "").toLowerCase();
+      return ["verified", "failed", "timedout"].includes(stage) ||
+        (execution.success === true &&
+          stage === "executed" &&
+          ["screen_on", "screen_off_standby", "screen_off_blackout"].includes(command));
+    }
+
+    function describeExecutionSummary(executions) {
+      const total = executions.length;
+      const ok = executions.filter(item => item.success === true).length;
+      const failed = executions.filter(item => item.success === false).length;
+      const pending = total - ok - failed;
+      if (failed > 0) {
+        return `命令完成：${ok} 台成功，${failed} 台失败${pending ? `，${pending} 台等待确认` : ""}。`;
+      }
+      if (pending > 0) {
+        return `命令已执行：${ok} 台成功，${pending} 台等待状态确认。`;
+      }
+      return `命令完成：${ok} 台成功。`;
+    }
+
+    async function trackCommandResult(result) {
+      if (!result?.requestId || !Array.isArray(result.executions)) {
+        await refreshScreens({ silent: true });
+        return;
+      }
+
+      let executions = result.executions;
+      if (executions.length === 0) {
+        showToast("没有可控制的在线设备。", true);
+        return;
+      }
+
+      showToast(`命令已发送给 ${executions.length} 台在线设备，正在等待 Agent 回执…`);
+      for (let attempt = 0; attempt < 18; attempt += 1) {
+        await new Promise(resolve => setTimeout(resolve, attempt < 4 ? 700 : 1500));
+        executions = await api(`/api/command-requests/${encodeURIComponent(result.requestId)}`);
+        if (executions.length > 0 && executions.every(isTerminalExecution)) {
+          const hasFailure = executions.some(item => item.success === false);
+          showToast(describeExecutionSummary(executions), hasFailure);
+          await refreshScreens({ silent: true });
+          return;
+        }
+      }
+
+      showToast("命令已下发，仍有设备等待确认；页面会继续自动刷新。");
+      await refreshScreens({ silent: true });
+    }
+
+    async function withCommandBusy(button, busyText, action) {
+      if (state.commandBusy || button.disabled || button.getAttribute("aria-busy") === "true") {
+        return;
+      }
+      const original = button.textContent;
+      state.commandBusy = true;
+      button.setAttribute("aria-busy", "true");
+      button.textContent = busyText;
+      updateSelection();
+      try {
+        return await action();
+      } finally {
+        button.textContent = original;
+        button.removeAttribute("aria-busy");
+        state.commandBusy = false;
+        updateSelection();
+      }
+    }
+
+    async function sendGlobalCommand(command, button) {
+      await withCommandBusy(button, "正在发送…", async () => {
+        const query = command === "off" ? `?mode=${encodeURIComponent(state.mode)}` : "";
+        try {
+          const result = await api(`/api/screens/${command}${query}`, { method: "POST" });
+          showToast(command === "on" ? "已向全部在线设备发送亮屏命令。" : `已向全部在线设备发送${offActionLabel()}命令。`);
+          await trackCommandResult(result);
+          await refreshScreens({ silent: true });
+        } catch (error) {
+          if (!await handleAuthenticationError(error)) {
+            showToast(error.message, true);
+          }
+        }
+      });
+    }
+
+    async function sendBatchCommand(command, button) {
+      const deviceIds = state.screens
+        .filter(screen => screen.online && state.selected.has(screen.id))
+        .map(screen => screen.id);
+      if (deviceIds.length === 0) {
+        $("appError").textContent = "请先选择至少 1 台在线设备。";
+        return;
+      }
+
+      await withCommandBusy(button, "正在发送…", async () => {
+        try {
+          const result = await api(`/api/screens/batch/${command}`, {
+            method: "POST",
+            body: JSON.stringify({
+              deviceIds,
+              mode: command === "off" ? state.mode : null
+            })
+          });
+          showToast(`命令已发送给 ${deviceIds.length} 台在线设备。`);
+          await trackCommandResult(result);
+          await refreshScreens({ silent: true });
+        } catch (error) {
+          if (!await handleAuthenticationError(error)) {
+            showToast(error.message, true);
+          }
+        }
+      });
+    }
+
+    async function sendDeviceCommand(deviceId, command, button) {
+      await withCommandBusy(button, "发送中…", async () => {
+        const query = command === "off" ? `?mode=${encodeURIComponent(state.mode)}` : "";
+        try {
+          const result = await api(`/api/screens/${encodeURIComponent(deviceId)}/${command}${query}`, { method: "POST" });
+          showToast("设备命令已发送。");
+          await trackCommandResult(result);
+          await refreshScreens({ silent: true });
+        } catch (error) {
+          if (!await handleAuthenticationError(error)) {
+            showToast(error.message, true);
+          }
+        }
+      });
+    }
+
+    function openEditDialog(deviceId) {
+      const screen = state.screens.find(item => item.id === deviceId);
+      if (!screen) {
+        return;
+      }
+      $("editDeviceId").value = screen.id;
+      $("editDeviceName").value = screen.name || "";
+      $("editDeviceNote").value = screen.note || "";
+      $("editError").textContent = "";
+      $("editDialog").showModal();
+      $("editDeviceName").focus();
+    }
+
+    async function saveDevice(event) {
+      event.preventDefault();
+      $("editError").textContent = "";
+      if (!$("editForm").reportValidity()) {
+        return;
+      }
+      if (!$("editDeviceName").value.trim()) {
+        $("editError").textContent = "设备名称不能为空，请输入一个名称。";
+        $("editDeviceName").focus();
+        return;
+      }
+
+      await withBusy($("saveEditButton"), "正在保存…", async () => {
+        try {
+          await api(`/api/screens/${encodeURIComponent($("editDeviceId").value)}`, {
+            method: "PATCH",
+            body: JSON.stringify({
+              name: $("editDeviceName").value.trim(),
+              note: $("editDeviceNote").value.trim()
+            })
+          });
+          $("editDialog").close();
+          showToast("设备信息已保存。");
+          await refreshScreens({ silent: true });
+        } catch (error) {
+          if (!await handleAuthenticationError(error)) {
+            $("editError").textContent = error.message;
+          }
+        }
+      });
+    }
+
+    async function deleteDevice(deviceId, button) {
+      const screen = state.screens.find(item => item.id === deviceId);
+      if (!screen) {
+        return;
+      }
+      if (!confirm(`确定删除“${screen.name}”吗？设备下次连接时会重新注册。`)) {
+        return;
+      }
+      await withBusy(button, "删除中…", async () => {
+        try {
+          await api(`/api/screens/${encodeURIComponent(deviceId)}`, { method: "DELETE" });
+          state.selected.delete(deviceId);
+          showToast("设备记录已删除。");
+          await refreshScreens({ silent: true });
+        } catch (error) {
+          if (!await handleAuthenticationError(error)) {
+            showToast(error.message, true);
+          }
+        }
+      });
+    }
+
+    function renderLogs() {
+      $("logEmpty").classList.toggle("hidden", state.logs.length !== 0);
+      $("logRows").innerHTML = state.logs.map(log => `
+        <tr>
+          <td class="mono-number" data-label="时间">${formatDate(log.executeTime)}</td>
+          <td data-label="设备">
+            <div class="device-name">${escapeHtml(log.deviceName || "系统")}</div>
+            <div class="device-id">${escapeHtml(log.deviceId || "—")}</div>
+          </td>
+          <td data-label="操作">${escapeHtml(commandLabels[log.command] || log.command)}</td>
+          <td data-label="结果">
+            <span class="status-pill ${log.success ? "verified" : "error"}">${log.success ? "成功" : "失败"}</span>
+          </td>
+          <td data-label="说明">${escapeHtml(log.message || "—")}</td>
+        </tr>`).join("");
+    }
+
+    async function refreshLogs(button = null) {
+      const run = async () => {
+        $("logError").textContent = "";
+        try {
+          state.logs = await api("/api/logs?limit=200");
+          renderLogs();
+          resetCountdown();
+        } catch (error) {
+          if (!await handleAuthenticationError(error)) {
+            $("logError").textContent = error.message;
+          }
+        }
+      };
+      if (button) {
+        await withBusy(button, "刷新中…", run);
+      } else {
+        await run();
+      }
+    }
+
+    function setTab(tab) {
+      state.activeTab = tab === "logs" ? "logs" : "devices";
+      const showingLogs = state.activeTab === "logs";
+      $("devicesTab").setAttribute("aria-selected", String(!showingLogs));
+      $("logsTab").setAttribute("aria-selected", String(showingLogs));
+      $("devicesPanel").classList.toggle("hidden", showingLogs);
+      $("logsPanel").classList.toggle("hidden", !showingLogs);
+      const url = new URL(location.href);
+      if (showingLogs) {
+        url.searchParams.set("tab", "logs");
+        refreshLogs();
+      } else {
+        url.searchParams.delete("tab");
+      }
+      history.replaceState(null, "", url);
+    }
+
+    function setMode(mode) {
+      state.mode = mode === "blackout" ? "blackout" : "standby";
+      document.querySelectorAll("[data-mode]").forEach(button => {
+        button.setAttribute("aria-pressed", String(button.dataset.mode === state.mode));
+      });
+      updateModeLabels();
+      renderScreens();
+    }
+
+    function offActionLabel() {
+      return state.mode === "blackout" ? "黑幕" : "休眠";
+    }
+
+    function updateModeLabels() {
+      const offLabel = offActionLabel();
+      $("allOffButton").textContent = state.mode === "blackout" ? "全部黑幕" : "全部休眠";
+      $("selectedOffButton").textContent = `选中${offLabel}`;
+    }
+
+    function showToast(message, isError = false) {
+      clearTimeout(state.toastTimer);
+      $("toast").textContent = message;
+      $("toast").classList.toggle("error", isError);
+      $("toast").classList.remove("hidden");
+      state.toastTimer = setTimeout(() => $("toast").classList.add("hidden"), 4200);
+    }
+
+    function resetCountdown() {
+      state.countdown = 30;
+      $("refreshNote").textContent = "30 秒心跳刷新";
+    }
+
+    function startAutoRefresh() {
+      stopAutoRefresh();
+      resetCountdown();
+      state.countdownTimer = setInterval(() => {
+        state.countdown = Math.max(0, state.countdown - 1);
+        $("refreshNote").textContent = `${state.countdown} 秒后心跳刷新`;
+      }, 1000);
+      state.refreshTimer = setInterval(async () => {
+        if (state.activeTab === "logs") {
+          await refreshLogs();
+        } else {
+          await refreshScreens({ silent: true });
+        }
+      }, 30000);
+      state.sessionTimer = setInterval(async () => {
+        if (!state.username || state.authTransitioning) {
+          return;
+        }
+        try {
+          const session = await api("/api/auth/session", { timeoutMs: 5000 });
+          if (!session.authenticated) {
+            await handleAuthenticationError(
+              new ApiError(
+                session.authReason === "session-replaced"
+                  ? "此账号已在另一台设备登录，本设备已安全退出。"
+                  : "登录状态已失效，请重新登录。",
+                401,
+                session.authReason));
+          }
+        } catch (error) {
+          await handleAuthenticationError(error);
+        }
+      }, 5000);
+    }
+
+    function stopAutoRefresh() {
+      clearInterval(state.refreshTimer);
+      clearInterval(state.countdownTimer);
+      clearInterval(state.sessionTimer);
+      state.refreshTimer = null;
+      state.countdownTimer = null;
+      state.sessionTimer = null;
+    }
+
+    $("loginForm").addEventListener("submit", login);
+    $("captchaButton").addEventListener("click", loadCaptcha);
+    $("captchaCode").addEventListener("input", () => {
+      $("captchaCode").value = $("captchaCode").value.replace(/\s+/g, "").toUpperCase();
+    });
+    $("sessionNoticeButton").addEventListener("click", () => {
+      setSessionNotice();
+      $("password").focus();
+    });
+    $("passwordForm").addEventListener("submit", changePassword);
+    $("logoutButton").addEventListener("click", logout);
+    $("openPasswordButton").addEventListener("click", () => {
+      $("passwordHelp").textContent = "修改后需要使用新密码重新登录。";
+      $("cancelPasswordButton").classList.remove("hidden");
+      setView("password");
+    });
+    $("cancelPasswordButton").addEventListener("click", () => {
+      $("passwordForm").reset();
+      $("passwordError").textContent = "";
+      setView("app");
+      startAutoRefresh();
+    });
+    $("allOnButton").addEventListener("click", event => sendGlobalCommand("on", event.currentTarget));
+    $("allOffButton").addEventListener("click", event => sendGlobalCommand("off", event.currentTarget));
+    $("selectedOnButton").addEventListener("click", event => sendBatchCommand("on", event.currentTarget));
+    $("selectedOffButton").addEventListener("click", event => sendBatchCommand("off", event.currentTarget));
+    $("refreshButton").addEventListener("click", event =>
+      withBusy(event.currentTarget, "刷新中…", () => refreshScreens()));
+    $("refreshLogsButton").addEventListener("click", event => refreshLogs(event.currentTarget));
+    $("cancelEditButton").addEventListener("click", () => $("editDialog").close());
+    $("editForm").addEventListener("submit", saveDevice);
+
+    $("selectAll").addEventListener("change", event => {
+      state.selected = new Set(event.target.checked ? state.screens.map(screen => screen.id) : []);
+      document.querySelectorAll("#screenRows [data-select]").forEach(checkbox => {
+        checkbox.checked = event.target.checked;
+      });
+      updateSelection();
+    });
+
+    document.addEventListener("change", event => {
+      const deviceId = event.target?.dataset?.select;
+      if (!deviceId) {
+        return;
+      }
+      if (event.target.checked) {
+        state.selected.add(deviceId);
+      } else {
+        state.selected.delete(deviceId);
+      }
+      updateSelection();
+    });
+
+    document.addEventListener("click", async event => {
+      const tab = event.target.closest("[data-tab]")?.dataset.tab;
+      const mode = event.target.closest("[data-mode]")?.dataset.mode;
+      const actionButton = event.target.closest("[data-action]");
+      if (tab) {
+        setTab(tab);
+      }
+      if (mode) {
+        setMode(mode);
+      }
+      if (!actionButton) {
+        return;
+      }
+      const { action, device } = actionButton.dataset;
+      if (action === "on" || action === "off") {
+        await sendDeviceCommand(device, action, actionButton);
+      } else if (action === "edit") {
+        openEditDialog(device);
+      } else if (action === "delete") {
+        await deleteDevice(device, actionButton);
+      }
+    });
+
+    $("editDialog").addEventListener("click", event => {
+      if (event.target === $("editDialog")) {
+        $("editDialog").close();
+      }
+    });
+
+    loadSession().catch(async error => {
+      setSession(null);
+      setView("login");
+      $("loginError").textContent = error.message;
+      await loadCaptcha();
+    });
+  </script>
+</body>
+</html>
