@@ -4,27 +4,20 @@
     "net10.0": {
       "Microsoft.Extensions.Hosting.WindowsServices": {
         "type": "Direct",
-        "requested": "[8.0.1, )",
-        "resolved": "8.0.1",
-        "contentHash": "5p0tjMDpr8tgzjBdu9Rzk8lUU/PaR1D3Us52XZypl85QTxfAjthR1+YywB3GsGc+FOZWdpuEDsV8kZisEC2Hng==",
+        "requested": "[10.0.10, )",
+        "resolved": "10.0.10",
+        "contentHash": "qY7XhE2ljtqCwDKexJf3uG4E7r0teE/DU0eEUDbFqGN2HAIz0WK7P3u4RnnnqOy/3Jz5vdTfTuDMFsrwxrcmeg==",
         "dependencies": {
-          "System.ServiceProcess.ServiceController": "8.0.1"
+          "System.ServiceProcess.ServiceController": "10.0.10"
         }
       },
       "System.ServiceProcess.ServiceController": {
         "type": "Transitive",
-        "resolved": "8.0.1",
-        "contentHash": "02I0BXo1kmMBgw03E8Hu4K6nTqur4wpQdcDZrndczPzY2fEoGvlinE35AWbyzLZ2h2IksEZ6an4tVt3hi9j1oA=="
+        "resolved": "10.0.10",
+        "contentHash": "9tI/EtlMimwJn9EEtbqFrVqGCD98VfVdnW6UekC7/YHO5Ky/LMUfXibBv9+AV8g9u7uim20oHgiOqzaeEWAhqg=="
       },
       "displaycontrol.contracts": {
         "type": "Project"
-      }
-    },
-    "net10.0/win-x64": {
-      "System.ServiceProcess.ServiceController": {
-        "type": "Transitive",
-        "resolved": "8.0.1",
-        "contentHash": "02I0BXo1kmMBgw03E8Hu4K6nTqur4wpQdcDZrndczPzY2fEoGvlinE35AWbyzLZ2h2IksEZ6an4tVt3hi9j1oA=="
       }
     }
   }
